@@ -50,10 +50,8 @@
 	<div class="drawer drawer-mobile">
 		<input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
 		<div class="drawer-content flex flex-col items-center justify-center">
-			<label for="my-drawer-2" class="btn btn-primary mt-4 drawer-button lg:hidden">Open drawer</label>
-			{#if auth.currentUser == null}
-				<LoginBlock></LoginBlock>
-			{:else if loggedIn}
+			<label for="my-drawer-2" class="btn btn-primary my-4 drawer-button lg:hidden">Login</label>
+			{#if loggedIn}
 				<Chat chatMessages={messages} threadID = {currThreadID} threadname = {threadName}/>
 			{:else}
 				<progress class="progress w-56"></progress>

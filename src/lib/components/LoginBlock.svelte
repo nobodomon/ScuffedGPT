@@ -32,8 +32,10 @@
     }
 </script>
 
-<form on:submit|preventDefault={() => handleLoginWithEmailPassword()} class="grid grid-cols-1 gap-4">
-	<div class="form-control w-full max-w-xs">
+<form
+ on:submit|preventDefault={() => handleLoginWithEmailPassword()} 
+ class="flex flex-col flex-wrap gap-4 justify-center h-full">
+	<div class="form-control w-full max-w-xs ">
 		<label class="label" for="email">
 			<span class="label-text">Email</span>
 		</label>
@@ -57,7 +59,8 @@
 			bind:value={password}
 		/>
 	</div>
-	<button type="submit" class="btn btn-primary">Login</button>
+	<button type="submit" class="btn btn-primary w-full">Login</button>
+	<button class="btn btn-primary w-full" on:click={()=> handleGoogleLogin()}> Sign in with google</button>
     <div class="alert alert-error shadow-lg" class:hidden={!loginError.status}>
         <div>
           <svg 
@@ -69,4 +72,3 @@
         </div>
       </div>
 </form>
-<button class="btn btn-primary mt-4" on:click={()=> handleGoogleLogin()}> Sign in with google</button>
