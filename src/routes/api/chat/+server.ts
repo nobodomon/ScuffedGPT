@@ -5,6 +5,7 @@ import { getTokens } from '$lib/tokenizer'
 import { json } from '@sveltejs/kit'
 import type { Config } from '@sveltejs/adapter-vercel'
 
+
 export const config: Config = {
 	runtime: 'edge'
 }
@@ -53,7 +54,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		const prompt =
-			'You are a virtual assistant for a company called Huntabyte. Your name is Axel Smith'
+			'You are a virtual assistant to replace ChatGPT when it is down. Your name is ScuffedGPT.'
 		tokenCount += getTokens(prompt)
 
 		if (tokenCount >= 4000) {
@@ -92,7 +93,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 		})
 	} catch (err) {
-		console.error(err)
+		console.log(err instanceof Error ? err.message : err)
 		return json({ error: 'There was an error processing your request' }, { status: 500 })
 	}
 }
