@@ -26,7 +26,7 @@
 	const dispatch = createEventDispatcher();
     
 
-	function scrollToBottom() {
+	export function scrollToBottom() {
 		setTimeout(function () {
 			scrollToDiv.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' })
 		}, 100)
@@ -113,10 +113,13 @@
         }
     }
 	
+	const chatHeight = window.innerHeight - 64
+
+	const style = 'max-h-[' + chatHeight + 'px]'
 
 </script>
 
-<div class="flex flex-col py-4 w-full px-8 items-center gap-2 h-full">
+<div class="flex flex-col w-full px-4 items-center gap-4 grow max-h-full relative">
 	<div class="form-control w-full">
         <div class="input-group">
           <input 
@@ -130,7 +133,7 @@
           </button>
         </div>
       </div>
-	<div class="h-[100%] w-full bg-gray-900 rounded-md p-4 overflow-y-auto flex flex-col gap-4">
+	<div class="w-full bg-gray-900 rounded-md p-4 overflow-y-auto flex flex-col gap-4 grow">
 		<div class="flex flex-col gap-2">
 			{#each chatMessages as message}
 				<ChatMessage 
