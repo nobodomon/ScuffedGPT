@@ -116,7 +116,7 @@
 
 </script>
 
-<div class="flex flex-col py-4 w-full px-8 items-center gap-2 h-[100vh]">
+<div class="flex flex-col py-4 w-full px-8 items-center gap-2 h-full">
 	<div class="form-control w-full">
         <div class="input-group">
           <input 
@@ -133,14 +133,21 @@
 	<div class="h-[100%] w-full bg-gray-900 rounded-md p-4 overflow-y-auto flex flex-col gap-4">
 		<div class="flex flex-col gap-2">
 			{#each chatMessages as message}
-				<ChatMessage type={message.role} message={message.content} />
+				<ChatMessage 
+				type={message.role} 
+				message={message.content} 
+				user= {auth.currentUser}
+				/>
 			{/each}
-			{#if answer}
-				<ChatMessage type="assistant" message={answer} />
+			{#if answer && loading}
+				<ChatMessage 
+				type="assistant" 
+				message={answer} 
+				loading={loading} 
+				user= {auth.currentUser}
+				/>
 			{/if}
-			{#if loading}
-				<ChatMessage type="assistant" message="Loading.." />
-			{/if}
+			
 		</div>
 		<div class="" bind:this={scrollToDiv} />
 	</div>

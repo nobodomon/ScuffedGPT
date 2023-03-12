@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { HighlightAuto } from "svelte-highlight";
+    import { HighlightAuto, LineNumbers } from "svelte-highlight";
 
     import github from "svelte-highlight/styles/github-dark.css"
 
@@ -18,7 +18,8 @@
     {@html github}
 </svelte:head>
 
-<div class="mockup-code">
-    
-    <HighlightAuto code={code}/>
+<div class="mockup-code my-4">
+    <HighlightAuto code={code} let:highlighted>
+        <LineNumbers {highlighted} />
+    </HighlightAuto>
 </div>
