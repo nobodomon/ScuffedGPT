@@ -2,7 +2,7 @@
 	import type { Auth} from 'firebase/auth'
 	import type { ChatCompletionRequestMessageRoleEnum } from 'openai'
 	import { each } from 'svelte/internal'
-	import Codeblock from './Codeblock.svelte';
+	import CodeBlock from './CodeBlock.svelte';
 	export let type: ChatCompletionRequestMessageRoleEnum
 	export let message: string
 	export let loading = false
@@ -64,7 +64,7 @@
 			{#if typeof block === 'string'}
 				{@html block}
 			{:else}
-				<Codeblock code={block.code} />
+				<CodeBlock code={block.code} />
 			{/if}
 		{/each}
 
