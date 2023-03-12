@@ -44,6 +44,19 @@
 		currThreadID = e.detail.threadID
 		threadName = e.detail.threadName
 	}
+
+	let threads : Threads;
+
+	async function handleThreadAdd (e : any) {
+		console.log("handleThreadAdd")
+
+		await threads.refreshThreads();
+		currThreadID = e.detail.threadID
+		threadName = e.detail.threadName
+		messages = e.detail.messages
+	}
+
+	
 </script>
 
 <div class="flex flex-col items-center mx-auto">
@@ -52,7 +65,12 @@
 		<div class="drawer-content flex flex-col items-center justify-center">
 			<label for="my-drawer-2" class="btn btn-primary my-4 drawer-button lg:hidden">Login</label>
 			{#if loggedIn}
-				<Chat chatMessages={messages} threadID = {currThreadID} threadname = {threadName}/>
+				<Chat 
+				chatMessages={messages} 
+				threadID = {currThreadID} 
+				threadname = {threadName}
+				on:threadswitch = {handleThreadAdd}
+				/>
 			{:else}
 				<progress class="progress w-56"></progress>
 			{/if}
@@ -70,6 +88,11 @@
 			<Threads 
 			on:threadswitch = {handleThreadSwitch}
 			on:threadswitchNew = {handleThreadSwitch}
+
+			bind:this={threads}
+
+			currThreadID = {currThreadID}
+
 			uid={uid}
 			></Threads>
 			{:else}

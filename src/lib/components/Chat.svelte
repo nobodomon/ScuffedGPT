@@ -9,6 +9,8 @@
     import {threadsCollection} from "../../firebase"
 	import { updated } from '$app/stores'
 
+	import {createEventDispatcher} from 'svelte';
+
 	let chatQuery: string = ''
 	let answer: string = ''
 	let loading: boolean = false
@@ -20,6 +22,8 @@
 
     export let threadname = ""
     export let threadID = ""
+
+	const dispatch = createEventDispatcher();
     
 
 	function scrollToBottom() {
@@ -52,7 +56,6 @@
 					
                     await updateDb();
 					loading = false
-
 					return
 				}
 
@@ -87,6 +90,12 @@
                 messages: chatMessages,
                 users: auth.currentUser!!.uid
             })
+
+			dispatch("threadswitch", {
+				threadID: threadID,
+				threadName: threadname,
+				messages: chatMessages
+			});
         }else{
             await addDoc(threadsCollection, {
                 name: threadname,
@@ -94,9 +103,17 @@
                 users: auth.currentUser!!.uid
             }).then((docRef) => {
                 threadID = docRef.id
+
+				dispatch("threadswitch", {
+					threadID: threadID,
+					threadName: threadname,
+					messages: chatMessages
+				});
             })
         }
     }
+	
+
 </script>
 
 <div class="flex flex-col py-4 w-full px-8 items-center gap-2 h-[100vh]">

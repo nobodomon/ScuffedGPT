@@ -60,7 +60,7 @@
 		/>
 	</div>
 	<button type="submit" class="btn btn-primary w-full">Login</button>
-	<button class="btn btn-primary w-full" on:click={()=> handleGoogleLogin()}> Sign in with google</button>
+	<button class="btn btn-primary w-full" on:click|preventDefault={()=> handleGoogleLogin()}> Sign in with google</button>
     <div class="alert alert-error shadow-lg" class:hidden={!loginError.status}>
         <div>
           <svg 
