@@ -14,6 +14,7 @@
 	let chatQuery: string = ''
 	let answer: string = ''
 	let loading: boolean = false
+	let authLoading: boolean = true
 	export let chatMessages: ChatCompletionRequestMessage[]
 	let scrollToDiv: HTMLDivElement
 
@@ -117,8 +118,24 @@
 
 	const style = 'max-h-[' + chatHeight + 'px]'
 
-</script>
+	auth.onAuthStateChanged((user) => {
+		if (user) {
+			// User is signed in, see docs for a list of available properties
+			// https://firebase.google.com/docs/reference/js/firebase.User
+			// ...
+			authLoading = false
+			
+		} else {
+			// User is signed out
+			// ...
+			authLoading = false
+		}
+	});
 
+</script>
+{#if authLoading}
+<progress class="progress progress-primary w-56"></progress>
+{:else}
 <div class="flex flex-col w-full px-4 items-center gap-4 grow max-h-full relative">
 	<div class="form-control w-full">
         <div class="input-group">
@@ -168,3 +185,5 @@
 		{/if}
 	</form>
 </div>
+
+{/if}

@@ -10,6 +10,8 @@
     
     let threads : any[] = [];
 
+    let loading : boolean = true;
+
     export let currThreadID : string;
 
     const dispatcher = createEventDispatcher();
@@ -43,13 +45,21 @@
     //     });
     // }
 
-    onMount(async () => {
-        const user = getAuth().currentUser;
-        if(user != null){
-            uid = user.uid;
+    auth.onAuthStateChanged( async (user) => {
+        if (user) {
+            // User is signed in, see docs for a list of available properties
+            // https://firebase.google.com/docs/reference/js/firebase.User
+            loading = false;
+            uid = user.uid
             threads = await load();
+            // ...
+        } else {
+            // User is signed out
+            // ...
+            loading = true;
+            uid = ''
         }
-    });
+    })
 
 
 
@@ -89,36 +99,40 @@
 </script>
 
 <div class="grid grid-cols-1 gap-4 menu ">
-    <button class="btn btn-outline btn-primary" on:click={() => callDispatch({id: "", name: "", messages: []})}>
-        New Thread
-    </button>
+    {#if loading}
+		<progress class="progress progress-primary w-56"></progress>
+    {:else}
+        <button class="btn btn-outline btn-primary" on:click={() => callDispatch({id: "", name: "", messages: []})}>
+            New Thread
+        </button>
         {#each threads as thread}
-        {#if thread.id === currThreadID}
-        <div class="w-full bordered flex items-center gap-1">
-            <button class="btn btn-primary grow" on:click={() => callDispatch(thread)}>
-                {thread.name  == "" ? "Unnamed Thread" : thread.name}
-            </button>
-            <button class="btn btn-ghost btn-square" on:click={()=> deleteThread(thread)}>
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-            </button>
-        </div>
-        {:else}
-        <div class="w-full flex items-center gap-1">
-            <button class="btn btn-outline btn-primary grow" on:click={() => callDispatch(thread)}>
-                {thread.name  == "" ? "Unnamed Thread" : thread.name}
-            </button>
-            <button class="btn btn-ghost btn-square" on:click={()=> deleteThread(thread)}>
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-            </button>
-        </div>
-        {/if}
-    {/each}
+            {#if thread.id === currThreadID}
+            <div class="w-full bordered flex items-center gap-1">
+                <button class="btn btn-primary grow" on:click={() => callDispatch(thread)}>
+                    {thread.name  == "" ? "Unnamed Thread" : thread.name}
+                </button>
+                <button class="btn btn-ghost btn-square" on:click={()=> deleteThread(thread)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            {:else}
+            <div class="w-full flex items-center gap-1">
+                <button class="btn btn-outline btn-primary grow" on:click={() => callDispatch(thread)}>
+                    {thread.name  == "" ? "Unnamed Thread" : thread.name}
+                </button>
+                <button class="btn btn-ghost btn-square" on:click={()=> deleteThread(thread)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            {/if}
+        {/each}
+    {/if}
 </div>
