@@ -89,7 +89,7 @@
 			chatMessages={messages}
 			threadID={currThreadID}
 			threadname={threadName}
-			on:threadswitch={handleThreadAdd}
+			on:updatedoc={handleThreadAdd}
 			bind:this={chat}
 		/>
 		{:else}

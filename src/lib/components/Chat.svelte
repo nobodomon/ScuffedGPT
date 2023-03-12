@@ -92,7 +92,7 @@
                 users: auth.currentUser!!.uid
             })
 
-			dispatch("threadswitch", {
+			dispatch("updatedoc", {
 				threadID: threadID,
 				threadName: threadname,
 				messages: chatMessages
@@ -105,7 +105,7 @@
             }).then((docRef) => {
                 threadID = docRef.id
 
-				dispatch("threadswitch", {
+				dispatch("updatedoc", {
 					threadID: threadID,
 					threadName: threadname,
 					messages: chatMessages

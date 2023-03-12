@@ -5,6 +5,7 @@
     import {getAuth} from "firebase/auth";
 
     import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where} from "firebase/firestore";
+	import type { ChatCompletionRequestMessage } from "openai"
 
     const dispatch = createEventDispatcher();
     
@@ -73,7 +74,7 @@
             threads.push({
                 id: doc.id,
                 name: doc.data().name,
-                messages: doc.data().messages
+                messages: doc.data().messages as ChatCompletionRequestMessage[]
             });
         });
 
