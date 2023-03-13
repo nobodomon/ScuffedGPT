@@ -203,7 +203,8 @@
                         <div class="chat-bubble chat-bubble-primary">Transcription Results</div>
                     </div>
 
-                    {#each formatText(output) as part}
+                    {#if formatText(output).length > 0}
+                        {#each formatText(output) as part}
                         <div class="chat chat-start">
                             <div class="chat-image avatar">
                             <div class="w-10 rounded-full">
@@ -211,7 +212,8 @@
                             </div>
                             <div class="chat-bubble chat-bubble-primary">{part}</div>
                         </div>
-                    {/each}
+                        {/each}
+                    {/if}
                 {/if}
             {/if}
         </div>
