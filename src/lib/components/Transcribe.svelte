@@ -23,6 +23,8 @@
         rejected: []
     }
 
+    const allowedFormats = ["audio/mpeg", "video/mp4","video/mpeg", "audio/mp4", "audio/wav", "view/webm"]
+    const allowedFormatsString = allowedFormats.join(", ")
     let language = ''
     let transcriptionName = ''
 
@@ -63,6 +65,10 @@
     function handleError<T>(err: T) {
         loading = false
         console.error(err)
+    }
+
+    function selectFile(e:any){
+        files.accepted = [e.target.files[0]]
     }
 
     function findLanguageCode(e: any) {
@@ -139,6 +145,10 @@
         return parts;
 	}
 
+    function clearUploads () {
+        files.accepted = []
+    }
+
 </script>
 
 
@@ -150,6 +160,7 @@
         disableDefaultStyles={true}
         multiple={false}
         on:drop={handleFileUpload}
+        accept = {allowedFormats}
         >   
             <div class="flex flex-col items-stretch justify-between w-full h-full gap-4 prose">
                 <h1 class="
@@ -160,10 +171,22 @@
                 justify-center
                 border-dashed border-2 rounded-lg
                 ">Drag and drop a .mp3 file</h1>
-                <input type="file" class="file-input file-input-bordered file-input-primary w-full" />
+                <input type="file" disabled={files.accepted.length > 0} accept={allowedFormatsString} on:change={selectFile} on:click|preventDefault={()=>{}} class="file-input file-input-bordered file-input-primary w-full" />
             </div>
         </Dropzone>
         {#if files.accepted.length > 0}
+        <div class="card w-96 bg-base-100 shadow-xl">
+            <div class="card-body">
+                
+                <div class="card-actions justify-end">
+                    <button class="btn btn-square btn-sm" on:click={clearUploads}>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <h2 class="card-title">File Name</h2>
+                <p>{files.accepted[0].name}</p>
+            </div>
+          </div>
         <select class="select select-primary w-full" on:change={(e)=>{findLanguageCode(e)}}>
             <option disabled selected>What language is this in?</option>
             {#each languagesArray as lang}
