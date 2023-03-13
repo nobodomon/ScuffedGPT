@@ -1,21 +1,25 @@
 <script lang="ts">
 	import LoginBlock from '$lib/components/LoginBlock.svelte'
 	import '../app.css'
-	import { auth } from '../firebase'
+	import { auth,threadsCollection } from '../firebase'
 	import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 	import Threads from '$lib/components/Threads.svelte'
 	import Chat from '$lib/components/Chat.svelte'
 	import type { ChatCompletionRequestMessage } from 'openai'
 
+	import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where} from "firebase/firestore";
+
 	let loggedIn: boolean = false
 	let uid = ''
+	let allThreads : ChatCompletionRequestMessage[] = []
 
-	auth.onAuthStateChanged((user) => {
+	auth.onAuthStateChanged( async (user) => {
 		if (user) {
 			// User is signed in, see docs for a list of available properties
 			// https://firebase.google.com/docs/reference/js/firebase.User
 			uid = user.uid
 			loggedIn = true
+			allThreads = await load()
 			// ...
 		} else {
 			// User is signed out
@@ -34,36 +38,62 @@
 		}
 	}
 
+	
+
+
+    async function load () {
+        let threads : any[] = [];
+        console.log("Loading threads for user: " + uid)
+        const q = query(threadsCollection, where("users", "==", uid));
+        const snapshot = await getDocs(q);
+
+        snapshot.forEach((doc) => {
+            threads.push({
+                id: doc.id,
+                name: doc.data().name,
+                messages: doc.data().messages as ChatCompletionRequestMessage[]
+            });
+        });
+
+        return threads;
+    }
+
+
 	let messages: ChatCompletionRequestMessage[] = []
 	let currThreadID: string = ''
 	let threadName: string = ''
 
 	let chat : Chat;
-	const handleThreadSwitch = (e: any) => {
-		messages = e.detail.messages
+	const handleThreadSwitch = async (e: any) => {
 		currThreadID = e.detail.threadID
-		threadName = e.detail.threadName
-		chat.scrollToBottom()
+		await chat.getThread(currThreadID).then(()=>{
+			chat.scrollToBottom()
+		})
 	}
 
 	let threads: Threads
 
 	async function handleThreadAdd(e: any) {
 		console.log('handleThreadAdd')
-
-		await threads.refreshThreads()
+		allThreads = await load()
 		currThreadID = e.detail.threadID
-		threadName = e.detail.threadName
-		messages = e.detail.messages
 	}
+
+	async function handleThreadDelete(e: any) {
+		console.log('handleThreadDelete')
+		currThreadID = ''
+		allThreads = await load()
+		await chat.getThread("")
+	}
+	
 </script>
 
 <div class="drawer drawer-mobile h-[100svh] max-h-[100svh]">
 	<input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
-	<div class="drawer-content max-h-[100svh] flex flex-col">
+	<div class="drawer-content max-h-[100svh] flex flex-col relative">
 		<div class="w-full navbar bg-base-100">
 			<div class="flex-none">
-				<label for="my-drawer-2">
+				<label for="mrawer-2">
 					<div class="btn btn-ghost btn-square">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -86,12 +116,11 @@
 		</div>
 		{#if loggedIn}
 			<Chat
-			chatMessages={messages}
 			threadID={currThreadID}
-			threadname={threadName}
 			on:updatedoc={handleThreadAdd}
+			on:adddoc={handleThreadAdd}
 			bind:this={chat}
-		/>
+			/>
 		{:else}
 			<div class="h-full w-100 grow flex items-center place-self-center">
 				<LoginBlock />
@@ -110,9 +139,10 @@
 				<Threads
 					on:threadswitch={handleThreadSwitch}
 					on:threadswitchNew={handleThreadSwitch}
+					on:threaddelete={handleThreadDelete}
 					bind:this={threads}
+					threads={allThreads}
 					{currThreadID}
-					{uid}
 				/>
 			{/if}
 		</ul>

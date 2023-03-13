@@ -3,7 +3,7 @@
 	import type { ChatCompletionRequestMessage } from 'openai'
 	import { SSE } from 'sse.js'
 
-    import { getFirestore, collection, addDoc, setDoc, doc, query,where } from 'firebase/firestore'
+    import { getFirestore, collection, addDoc, setDoc, doc, query,where, getDoc } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {threadsCollection} from "../../firebase"
@@ -11,18 +11,20 @@
 
 	import {createEventDispatcher} from 'svelte';
 
+    export let threadID = ""
+	let threadname = ""
+	let chatMessages: ChatCompletionRequestMessage[] = []
+	let loading: boolean = false
+
+	let fetching: boolean = false
+
 	let chatQuery: string = ''
 	let answer: string = ''
-	let loading: boolean = false
-	let authLoading: boolean = true
-	export let chatMessages: ChatCompletionRequestMessage[]
-	let scrollToDiv: HTMLDivElement
-
     let firestore = getFirestore()
     let auth = getAuth()
+	let scrollToDiv: HTMLDivElement
 
-    export let threadname = ""
-    export let threadID = ""
+
 
 	const dispatch = createEventDispatcher();
     
@@ -83,8 +85,6 @@
 
 
     async function updateDb(){
-
-
         if(threadID != ""){
             await setDoc(doc(firestore, "Threads", threadID), {
                 name: threadname,
@@ -94,8 +94,6 @@
 
 			dispatch("updatedoc", {
 				threadID: threadID,
-				threadName: threadname,
-				messages: chatMessages
 			});
         }else{
             await addDoc(threadsCollection, {
@@ -105,38 +103,39 @@
             }).then((docRef) => {
                 threadID = docRef.id
 
-				dispatch("updatedoc", {
+				dispatch("adddoc", {
 					threadID: threadID,
-					threadName: threadname,
-					messages: chatMessages
 				});
             })
         }
     }
-	
-	const chatHeight = window.innerHeight - 64
 
-	const style = 'max-h-[' + chatHeight + 'px]'
-
-	auth.onAuthStateChanged((user) => {
-		if (user) {
-			// User is signed in, see docs for a list of available properties
-			// https://firebase.google.com/docs/reference/js/firebase.User
-			// ...
-			authLoading = false
-			
-		} else {
-			// User is signed out
-			// ...
-			authLoading = false
+	export async function getThread(threadId: string){
+		fetching = true;
+		if(threadId == ""){
+			threadname = ""
+			chatMessages = []
+			fetching = false;
+			return;
 		}
-	});
-
+		getDoc(doc(firestore, "Threads", threadId)).then((doc) => {
+			if (doc.exists()) {
+				threadname = doc.data()!!.name
+				chatMessages = doc.data()!!.messages
+				fetching = false
+			} else {
+				// doc.data() will be undefined in this case
+				threadname = ""
+				chatMessages = []
+				fetching = false
+			}
+		}).catch((error) => {
+			console.log("Error getting document:", error);
+		});
+	}
+	
 </script>
-{#if authLoading}
-<progress class="progress progress-primary w-56"></progress>
-{:else}
-<div class="flex flex-col w-full px-4 items-center gap-4 grow max-h-full relative">
+<div class="flex flex-col w-full px-4 items-center gap-4 grow max-h-full relative h-[0px]">
 	<div class="form-control w-full">
         <div class="input-group">
           <input 
@@ -145,13 +144,19 @@
             class="input w-full input-bordered"
             bind:value={threadname}
             />
-          <button class="btn btn-primary" on:click={updateDb}>
+          <button class="btn btn-primary" on:click={async ()=>{
+			await updateDb()
+		  }}>
             Submit
           </button>
         </div>
-      </div>
+    </div>
 	<div class="w-full bg-gray-900 rounded-md p-4 overflow-y-auto flex flex-col gap-4 grow">
 		<div class="flex flex-col gap-2">
+			
+		{#if fetching}
+			<progress class="progress progress-primary w-56 place-items-center"></progress>
+		{:else}
 			{#each chatMessages as message}
 				<ChatMessage 
 				type={message.role} 
@@ -167,7 +172,7 @@
 				user= {auth.currentUser}
 				/>
 			{/if}
-			
+		{/if}
 		</div>
 		<div class="" bind:this={scrollToDiv} />
 	</div>
@@ -185,5 +190,3 @@
 		{/if}
 	</form>
 </div>
-
-{/if}
