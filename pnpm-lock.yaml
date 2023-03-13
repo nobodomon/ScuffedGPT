@@ -27,6 +27,7 @@ specifiers:
   sse.js: ^0.6.1
   svelte: ^3.55.1
   svelte-check: ^3.0.4
+  svelte-file-dropzone: ^1.0.0
   svelte-highlight: ^7.2.0
   svelte-preprocess: ^5.0.1
   tailwindcss: ^3.2.7
@@ -43,6 +44,7 @@ dependencies:
   gpt3-tokenizer: 1.1.5
   openai: 3.2.1
   sse.js: 0.6.1
+  svelte-file-dropzone: 1.0.0
 
 devDependencies:
   '@playwright/test': 1.31.2
@@ -2047,6 +2049,13 @@ packages:
       flat-cache: 3.0.4
     dev: true
 
+  /file-selector/0.2.4:
+    resolution: {integrity: sha512-ZDsQNbrv6qRi1YTDOEWzf5J2KjZ9KMI1Q2SGeTkCJmNNW25Jg4TW4UMcmoqcg4WrAyKRcpBXdbWRxkfrOzVRbA==}
+    engines: {node: '>= 10'}
+    dependencies:
+      tslib: 2.5.0
+    dev: false
+
   /file-uri-to-path/1.0.0:
     resolution: {integrity: sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==}
     dev: true
@@ -3395,6 +3404,12 @@ packages:
       - stylus
       - sugarss
     dev: true
+
+  /svelte-file-dropzone/1.0.0:
+    resolution: {integrity: sha512-F2DN+wN2w7bKuUJFYQOFsdtTgaohQ/rNKau5m5n2l3LHJRRIccYS4wpq8f6dz/h5aSxYse3oRclmYdW6FWAfjw==}
+    dependencies:
+      file-selector: 0.2.4
+    dev: false
 
   /svelte-highlight/7.2.0:
     resolution: {integrity: sha512-mOJltSmozHNuaIE4tglrOBQ9X/8sKoQMJfqm+YZUuHvzfAcefWtZVDFml2oUrEv8iehM79mdA9+0orhUWIrxWw==}

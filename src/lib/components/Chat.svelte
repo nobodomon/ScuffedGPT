@@ -3,13 +3,14 @@
 	import type { ChatCompletionRequestMessage } from 'openai'
 	import { SSE } from 'sse.js'
 
-    import { getFirestore, collection, addDoc, setDoc, doc, query,where, getDoc } from 'firebase/firestore'
+    import { getFirestore, addDoc, setDoc, doc, getDoc } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {threadsCollection} from "../../firebase"
 	import { updated } from '$app/stores'
 
 	import {createEventDispatcher} from 'svelte';
+	import { onMount } from 'svelte'
 
     export let threadID = ""
 	let threadname = ""
@@ -23,7 +24,11 @@
     let firestore = getFirestore()
     let auth = getAuth()
 	let scrollToDiv: HTMLDivElement
-
+	
+	onMount(async () => {
+		await getThread(threadID)
+		scrollToBottom()
+	})
 
 
 	const dispatch = createEventDispatcher();

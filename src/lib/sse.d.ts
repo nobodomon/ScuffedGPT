@@ -10,3 +10,5 @@ declare module 'sse.js' {
 		stream(): void
 	}
 }
+
+declare module "svelte-file-dropzone"
