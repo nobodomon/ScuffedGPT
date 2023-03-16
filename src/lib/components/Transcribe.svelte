@@ -178,7 +178,7 @@
 </script>
 
 
-<div class="h-[100svh] w-full flex flex-col gap-4 md:flex-row">
+<div class="h-[0px] max-h-full relative grow w-full flex flex-col gap-4 md:flex-row">
     {#if transcriptionId == ""}
     <div class="flex flex-col gap-4 px-4">
         <Dropzone
@@ -224,7 +224,7 @@
         {/if}
     </div>
     {/if}
-    <div class="flex flex-col max-w-full grow md:w-[0px] h-full max-h-full md:pr-4 pb-4 px-4 gap-4">
+    <div class="flex flex-col max-w-full grow md:w-[0px] h-full max-h-full relative md:pr-4 pb-4 px-4 gap-4">
         <div class="navbar bg-gray-900 rounded-md gap-4"> 
             
             <input type="text" placeholder="Transcription name" class="grow input input-bordered input-primary w-full" bind:value={transcriptionName}/>
@@ -302,6 +302,10 @@
                     </div>
                     {#each segments as segment}
                     <div class="chat chat-start">
+                        <div class="chat-image avatar">
+                        <div class="w-10 rounded-full">
+                            <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
+                        </div>
                         <div class="chat-bubble">
                             <div class="flex items-center flex-col gap-4">
                                 <div class="flex grow flex-col">
