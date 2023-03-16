@@ -35,9 +35,9 @@
 	formatText(message);
 </script>
 
-<div class="chat {type === 'user' ? 'chat-end' : 'chat-start'} justify-end">
-	<div class="chat-image avatar">
-		<div class="w-10 rounded-full">
+<div class={"flex gap-4 justify-start p-4 " + (type === "user" ? "bg-base-200": "bg-base-300")}>
+	<div class="chat-image avatar self-start">
+		<div class="w-8 rounded-full">
 			<!-- <img
 				src="https://ui-avatars.com/api/?name={type === 'user' ? 'Me' : 'S'}"
 				alt="{type} avatar"
@@ -54,12 +54,8 @@
 			{/if}
 		</div>
 	</div>
-	<div class="chat-header">
-		{type === 'user' ? 
-			user.displayName ? user.displayName : user.email.split('@')[0]
-		: 'ScuffedGPT'}
-	</div>
-	<div class="chat-bubble max-w-[600px] min-w-min {type === 'user' ? 'chat-bubble-primary' : 'chat-bubble-secondary'}">
+	
+	<div class="w-full">
 		{#each parts as block}
 			{#if typeof block === 'string'}
 				{@html block}

@@ -41,6 +41,8 @@
 	}
 
 	const handleSubmit = async () => {
+		if(chatQuery.trim() === "") return
+
 		loading = true
 		chatMessages = [...chatMessages, { role: 'user', content: chatQuery }]
 
@@ -59,17 +61,19 @@
 			scrollToBottom()
 			try {
 				if (e.data === '[DONE]') {
+					console.log(e);
 					chatMessages = [...chatMessages, { role: 'assistant', content: answer }]
 					answer = ''
-					
+
                     await updateDb();
 					loading = false
 					return
 				}
-
+				
 				const completionResponse = JSON.parse(e.data)
+				console.log(completionResponse)
 				const [{ delta }] = completionResponse.choices
-
+				
 				if (delta.content) {
 					answer = (answer ?? '') + delta.content
 				}
@@ -140,7 +144,7 @@
 	}
 	
 </script>
-<div class="flex flex-col w-full px-4 items-center gap-4 grow max-h-full relative h-[0px]">
+<div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
 	<div class="form-control w-full">
         <div class="input-group">
           <input 
@@ -156,8 +160,8 @@
           </button>
         </div>
     </div>
-	<div class="w-full bg-gray-900 rounded-md p-4 overflow-y-auto flex flex-col gap-4 grow">
-		<div class="flex flex-col gap-2">
+	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow">
+		<div class="flex flex-col">
 			
 		{#if fetching}
 			<progress class="progress progress-primary w-56 place-items-center"></progress>
@@ -169,7 +173,7 @@
 				user= {auth.currentUser}
 				/>
 			{/each}
-			{#if answer && loading}
+			{#if loading}
 				<ChatMessage 
 				type="assistant" 
 				message={answer} 
@@ -182,7 +186,7 @@
 		<div class="" bind:this={scrollToDiv} />
 	</div>
 	<form
-		class="flex w-full rounded-md gap-4 bg-gray-900 p-4"
+		class="flex w-full rounded-md gap-4 bg-base-300 p-4"
 		on:submit|preventDefault={() => handleSubmit()}
 	>
 		<input type="text" class="input input-bordered w-full" bind:value={chatQuery} />

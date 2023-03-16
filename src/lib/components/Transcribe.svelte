@@ -8,6 +8,11 @@
     import { getAuth } from 'firebase/auth'
 	import { createEventDispatcher } from 'svelte'
 	import { onMount } from 'svelte'
+
+    import MdContentCopy from 'svelte-icons/md/MdContentCopy.svelte'
+	import { text } from 'svelte/internal'
+    import moment from 'moment'
+
     export let transcriptionId = ""
 
     let loading = false;
@@ -23,20 +28,24 @@
         rejected: []
     }
 
-    const allowedFormats = ["audio/mpeg", "video/mp4","video/mpeg", "audio/mp4", "audio/wav", "view/webm"]
+    const allowedFormats = [".mp3",".mp4",".mpeg",".mpga",".m4a",".wav",".webm"]
     const allowedFormatsString = allowedFormats.join(", ")
     let language = ''
     let transcriptionName = ''
 
     let transcriptionModeRaw = true
 
-    export let output = ''
+    let output = ''
 
     onMount(async () => {
         await getTranscription(transcriptionId)
     })
+    
+    let segments: any[] = []
 
     const handleFileUpload = (e: any) => {
+        console.log(e)
+
         const {acceptedFiles, fileRejections} = e.detail;
         files.accepted = [...files.accepted, ...acceptedFiles];
         files.rejected = [...files.rejected, ...fileRejections];
@@ -57,7 +66,11 @@
             body: formData
         }).then(res => res.json())
 
+        console.log(eventSource);
+
+        segments = eventSource.segments
         output = eventSource.text
+
         files.accepted = []
         loading = false
     }
@@ -78,7 +91,7 @@
     function saveTranscription(){
         if(transcriptionId !== ""){
             setDoc(doc(firestore, "Transcriptions", transcriptionId), {
-                text: output,
+                segments: segments,
                 language: language,
                 date: new Date(),
                 user: auth.currentUser?.uid,
@@ -92,13 +105,15 @@
         }else{
                 
             addDoc(transcriptionsCollection, {
-                text: output,
+                segments: segments,
                 language: language,
+                text: output,
                 date: new Date(),
                 user: auth.currentUser?.uid,
                 name: transcriptionName
             }).then((docRef) => {
                 console.log("Document written with ID: ", docRef.id);
+                transcriptionId = docRef.id
                 dispatch("transcriptionNew",{
                     id: docRef.id
                 })
@@ -115,18 +130,21 @@
         if(transcriptionId == ""){
             fetching = false;
             output = ""
+            segments = []
             language = ""
             transcriptionName = ""
             return;
         }
         getDoc(doc(firestore, "Transcriptions", transcriptionId)).then((doc) => {
             if (doc.exists()) {
+                segments = doc.data()!!.segments
                 output = doc.data()!!.text
                 language = doc.data()!!.language
                 transcriptionName = doc.data()!!.name
                 fetching = false
             } else {
                 // doc.data() will be undefined in this case
+                segments = []
                 output = ""
                 language = ""
                 transcriptionName = ""
@@ -140,13 +158,21 @@
 
 	function formatText(message: string) {
         let parts: any[] = []; // initialize the parts array
-        parts = output.split("\n")
+        parts = message.split("\n")
 
         return parts;
 	}
 
     function clearUploads () {
         files.accepted = []
+    }
+
+    const copyToClipboard = (text: string) =>{
+        navigator.clipboard.writeText(text)
+    }   
+
+    function toSeconds(time: number){
+        return moment(time,"s.S").format('mm:ss:SS')
     }
 
 </script>
@@ -216,7 +242,37 @@
             <progress class="progress progress-primary w-56 place-items-center"></progress>
             {:else}
                 {#if transcriptionModeRaw}
-                <p>{output}</p>
+                    <div class="flex items-center">
+                        <div class="flex grow flex-col">
+                            <span>Transcription Result</span>
+                            <div class="flex flex-col gap-4">
+                                {output}
+                            </div>
+                            
+                        </div>
+
+                        <button class="btn btn-ghost text-sm" on:click={()=>{copyToClipboard(output)}}>
+                            <div class="w-10 p-2">
+                                <MdContentCopy />
+                            </div>
+                            Copy All
+                        </button>
+                    </div>
+
+                    {#each segments as segment}
+                        <div class="flex items-center">
+                            <div class="flex grow flex-col">
+                                <span class="font-bold">[{toSeconds(segment.start)} - {toSeconds(segment.end)}]</span>
+                                {segment.text}
+                            </div>
+                            <button class="btn btn-ghost text-sm" on:click={()=>{copyToClipboard(segment.text)}}>
+                                <div class="w-10 p-2">
+                                    <MdContentCopy />
+                                </div>
+                                Copy Text
+                            </button>
+                        </div>
+                    {/each}
                 {:else}
                     <div class="chat chat-start">
                         <div class="chat-image avatar">
@@ -225,18 +281,44 @@
                         </div>
                         <div class="chat-bubble chat-bubble-primary">Transcription Results</div>
                     </div>
-
-                    {#if formatText(output).length > 0}
-                        {#each formatText(output) as part}
-                        <div class="chat chat-start">
-                            <div class="chat-image avatar">
-                            <div class="w-10 rounded-full">
-                                <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
-                            </div>
-                            <div class="chat-bubble chat-bubble-primary">{part}</div>
+                    <div class="chat chat-start">
+                        <div class="chat-image avatar">
+                        <div class="w-10 rounded-full">
+                            <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
                         </div>
-                        {/each}
-                    {/if}
+                        <div class="chat-bubble chat-bubble-primary">
+                            <div class="flex items-center flex-col gap-4">
+                                <div class="flex grow flex-col">
+                                    {output}
+                                </div>
+                                <button class="btn btn-ghost text-sm self-end" on:click={()=>{copyToClipboard(output)}}>
+                                    <div class="w-10 p-2">
+                                        <MdContentCopy />
+                                    </div>
+                                    Copy Text
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {#each segments as segment}
+                    <div class="chat chat-start">
+                        <div class="chat-bubble">
+                            <div class="flex items-center flex-col gap-4">
+                                <div class="flex grow flex-col">
+                                    <span class="font-bold">[{toSeconds(segment.start)} - {toSeconds(segment.end)}]</span>
+                                    {segment.text}
+                                </div>
+                                <button class="btn btn-ghost text-sm self-end" on:click={()=>{copyToClipboard(segment.text)}}>
+                                    <div class="w-10 p-2">
+                                        <MdContentCopy />
+                                    </div>
+                                    Copy Text
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {/each}
+                    
                 {/if}
             {/if}
         </div>

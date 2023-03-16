@@ -125,6 +125,7 @@
 
 	async function handleTranscriptionAdd(e: any) {
 		console.log('handleTranscriptionAdd')
+		currThreadID = e.detail.id
 		pageType = 'transcribe'
 		allTranscriptions = await loadTranscriptions()
 	}
@@ -186,7 +187,7 @@
 				/>
 			{:else if pageType == "transcribe"}
 				<Transcribe
-					on:transcriptionNew{handleTranscriptionAdd}
+					on:transcriptionNew={handleTranscriptionAdd}
 					on:transcriptionUpdate={handleTranscriptionAdd}
 					transcriptionId={currThreadID}
 					bind:this={transcribe}

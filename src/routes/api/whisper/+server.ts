@@ -25,6 +25,7 @@ export const POST: RequestHandler = async ({ request }) => {
         formData.append('file', reqFile)
         formData.append("language", reqLanguage != null ? reqLanguage : "en" )
         formData.append('model', 'whisper-1')
+        formData.append('response_format', 'verbose_json')
         const transcribeResponse = await fetch("https://api.openai.com/v1/audio/transcriptions",{
             headers: {
                 Authorization: `Bearer ${OPENAI_KEY}`

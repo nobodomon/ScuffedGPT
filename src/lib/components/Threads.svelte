@@ -5,7 +5,8 @@
     import {getAuth} from "firebase/auth";
 
     import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where} from "firebase/firestore";
-	import type { ChatCompletionRequestMessage } from "openai"
+
+    import MdDeleteSweep from 'svelte-icons/md/MdDeleteSweep.svelte';
 
     const dispatch = createEventDispatcher();
     
@@ -58,6 +59,12 @@
         }
     }
 
+    function deleteAllThreads() {
+        console.log("Deleting all threads");
+        dispatch("deleteAllThreads", {
+        });
+    }
+
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
@@ -71,9 +78,16 @@
         {#if threads == null}
 		<progress class="progress progress-primary w-56"></progress>
         {:else}
-        <button class="btn btn-outline btn-primary" on:click={() => onNewThread()}>
-            New Thread
-        </button>
+        <div class="w-full flex items-center gap-1">
+            <button class="btn btn-outline btn-primary grow" on:click={() => onNewThread()}>
+                New Thread
+            </button>
+            <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> deleteAllThreads()}>
+                <div class="w-10 p-2">
+                    <MdDeleteSweep />
+                </div>
+            </button>
+        </div>
         {#each threads as thread}
             {#if thread.id === currThreadID}
             <div class="w-full bordered flex items-center gap-1">
