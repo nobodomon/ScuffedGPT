@@ -25,8 +25,8 @@
     };
 
     function transform (text : string) {
-        if(text.length > 15){
-            return truncate(text, 15);
+        if(text.length > 22){
+            return truncate(text, 22);
         }else{
             return text;
         }
@@ -75,6 +75,7 @@
             pageType: "chat",
         });
     }
+    
 
 </script>
 
