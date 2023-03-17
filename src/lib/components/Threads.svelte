@@ -7,6 +7,7 @@
     import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where} from "firebase/firestore";
 
     import MdDeleteSweep from 'svelte-icons/md/MdDeleteSweep.svelte';
+	import { getTokensFromAllThreads } from "$lib/tokenizer"
 
     const dispatch = createEventDispatcher();
     
@@ -69,15 +70,18 @@
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <div tabindex="0" class="collapse collapse-arrow shadow-inner bg-base-200 rounded-box">
-    
      <input type="checkbox" class="peer" /> 
     <div class="collapse-title text-xl font-medium">
-      Threads
+      <div class="flex w-full justify-between items-center">
+        Threads
+      </div>
     </div>
     <div class="collapse-content grid grid-flow-row auto-rows-fr gap-4 menu "> 
         {#if threads == null}
 		<progress class="progress progress-primary w-56"></progress>
         {:else}
+        
+        
         <div class="w-full flex items-center gap-1">
             <button class="btn btn-base grow" on:click={() => onNewThread()}>
                 New Thread
@@ -89,6 +93,15 @@
             </button>
         </div>
         <div class="divider"></div>
+        <div class="flex justify-between items-center">
+            
+			<div class="btn btn-ghost">
+				{getTokensFromAllThreads(threads)} tokens
+			</div>
+			<div class="btn btn-ghost">
+				${(getTokensFromAllThreads(threads)/1000 * 0.002).toFixed(4)}
+			</div>
+        </div>
         {#each threads as thread}
             <div class="w-full bordered flex items-center gap-1">
                 <button class={"btn grow " + (thread.id === currThreadID ? "btn-primary":"btn-base-100")} on:click|preventDefault={() => switchThread(thread.id)}>

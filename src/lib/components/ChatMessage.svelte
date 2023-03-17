@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getTokens } from '$lib/tokenizer'
 	import type { Auth} from 'firebase/auth'
 	import type { ChatCompletionRequestMessageRoleEnum } from 'openai'
 	import { each } from 'svelte/internal'
@@ -54,17 +55,22 @@
 		</div>
 	</div>
 	
-	<div class="w-full text-base-content max-w-[1000px]">
-		{#each formatText(message) as block}
-			{#if typeof block === 'string'}
-				{@html block}
-			{:else}
-				<CodeBlock code={block.code} />
-			{/if}
-		{/each}
+	<div class="w-full flex flex-col text-base-content max-w-[1000px]">
+		<div class="w-full text-base-content">
+			{#each formatText(message) as block}
+				{#if typeof block === 'string'}
+					{@html block}
+				{:else}
+					<CodeBlock code={block.code} />
+				{/if}
+			{/each}
 
-		{#if loading}
-			<progress class="progress progress-primary w-full"></progress>
-		{/if}
+			{#if loading}
+				<progress class="progress progress-primary w-full"></progress>
+			{/if}
+		</div>
+		<div class="self-end badge badge-sm badge-primary">
+			{(type == "user" ? "Prompt ":"Completion ")  + getTokens(message) + " tokens"}
+		</div>
 	</div>
 </div>

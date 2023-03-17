@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ChatMessage from '$lib/components/ChatMessage.svelte'
-	import type { ChatCompletionRequestMessage } from 'openai'
+	import type { ChatCompletionRequestMessage  } from 'openai'
 	import { SSE } from 'sse.js'
 
     import { getFirestore, addDoc, setDoc, doc, getDoc } from 'firebase/firestore'
@@ -11,6 +11,7 @@
 
 	import {createEventDispatcher} from 'svelte';
 	import { onMount } from 'svelte'
+	import { getTokens } from '$lib/tokenizer'
 
     export let threadID = ""
 	let threadname = ""
@@ -71,7 +72,6 @@
 				}
 				
 				const completionResponse = JSON.parse(e.data)
-				console.log(completionResponse)
 				const [{ delta }] = completionResponse.choices
 				
 				if (delta.content) {
@@ -141,13 +141,23 @@
 		}).catch((error) => {
 			console.log("Error getting document:", error);
 		});
+		
 	}
-	
+
+	function getTotalTokens(chatMessages: ChatCompletionRequestMessage[]){
+		let tokens = 0
+		chatMessages.forEach((message) => {
+			console.log(message);
+			tokens += getTokens(message.content)
+		})
+
+		return tokens
+	}
 </script>
 <div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-primary shadow-lg rounded-md gap-4"> 
             
-		<div class="form-control w-full shadow-inner">
+		<div class="form-control grow shadow-inner">
 			<div class="input-group">
 			  <input 
 				type="text" 
@@ -162,6 +172,16 @@
 			  </button>
 			</div>
 		</div>
+		
+		<label class="swap">
+			<input type="checkbox" />
+			<div class="btn btn-secondary break-keep swap-off">
+				{getTotalTokens(chatMessages)} tokens
+			</div>
+			<div class="btn btn-secondary break-keep swap-on">
+				${(getTotalTokens(chatMessages)/1000 * 0.002).toFixed(4)}
+			</div>
+		</label>
 	</div>
 	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow">
 		<div class="flex flex-col">
