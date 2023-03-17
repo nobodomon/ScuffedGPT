@@ -1,36 +1,55 @@
 <script lang="ts">
 	import LoginBlock from '$lib/components/LoginBlock.svelte'
 	import '../app.css'
-	import { auth,threadsCollection,transcriptionsCollection } from '../firebase'
+	import { auth,threadsCollection,transcriptionsCollection, userCollection } from '../firebase'
 	import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 	import Transcribe from '$lib/components/Transcribe.svelte'
 	import Threads from '$lib/components/Threads.svelte'
 	import Chat from '$lib/components/Chat.svelte'
 	import type { ChatCompletionRequestMessage } from 'openai'
 
-	import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where} from "firebase/firestore";
+	import {getFirestore, onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where, increment, updateDoc} from "firebase/firestore";
 	import Transcriptions from '$lib/components/Transcriptions.svelte'
 	import { onMount } from 'svelte'
 	import { themeChange } from 'theme-change'
+	import { getTokensFromAllThreads, getTotalTokens } from '$lib/tokenizer'
+	import { toSeconds } from '../utils'
 
 	let loggedIn: boolean = false
 	let uid = ''
+	let user = {}
 	let allThreads : ChatCompletionRequestMessage[] = []
 	let allTranscriptions : any[] = []
+
+	let usedTokens = 0;
+	let totalDuration = 0;
+	const firestore = getFirestore()
 
 	auth.onAuthStateChanged( async (user) => {
 		if (user) {
 			// User is signed in, see docs for a list of available properties
 			// https://firebase.google.com/docs/reference/js/firebase.User
 			uid = user.uid
+			user = user
 			loggedIn = true
 			allThreads = await loadThreads()
 			allTranscriptions = await loadTranscriptions()
+
+			const userTokens = doc(firestore, "Users", uid);
+
+			onSnapshot(userTokens, (doc) => {
+				if(doc.exists()){
+					usedTokens = doc.data().tokensUsed
+					totalDuration = doc.data().transcriptionTime
+				}
+			});
+			
 			// ...
 		} else {
 			// User is signed out
 			// ...
 			uid = ''
+			user = null
 			loggedIn = false
 		}
 	})
@@ -50,11 +69,40 @@
 
 	let pageType = 'chat'
 	
+	async function onThreadUpdate(e: CustomEvent){
+		let tokensUsed = e.detail.tokensUsed
+		updateTokenUse(tokensUsed)
+	}
 
+	async function updateTokenUse(tokensUsed: number){
+		
+		const incr = increment(tokensUsed)
+
+		const userDoc = doc(firestore, "Users", uid);
+
+		await updateDoc(userDoc, {
+			tokensUsed: incr
+		});
+	}
+
+	async function onTranscriptionUpdate(e: CustomEvent){
+		let duration = e.detail.duration
+		updateTranscriptionUse(duration)
+	}
+
+	async function updateTranscriptionUse(duration: number){
+		const incr = increment(duration)
+
+		const userDoc = doc(firestore, "Users", uid);
+
+		await updateDoc(userDoc, {
+			transcriptionTime: incr
+		});
+	}
+	
 
     async function loadThreads () {
         let threads : any[] = [];
-        console.log("Loading threads for user: " + uid)
         const q = query(threadsCollection, where("users", "==", uid));
         const snapshot = await getDocs(q);
 
@@ -87,33 +135,24 @@
 		return transcriptions;
 	}
 
-	let currThreadID: string = ''
+	let currID: string = ''
 
 	let chat : Chat;
 	let threads: Threads
 
 	const handleThreadSwitch = async (e: any) => {
-		currThreadID = e.detail.threadID
+		currID = e.detail.id
 		pageType = 'chat'
-		
-		try{
-			await chat.getThread(currThreadID).then(()=>{
-				chat.scrollToBottom()
-			})
-		}catch(e){
-		}
 	}
 
 	async function handleThreadAdd(e: any) {
-		console.log('handleThreadAdd')
 		pageType = 'chat'
 		allThreads = await loadThreads()
-		currThreadID = e.detail.threadID
+		currID = e.detail.threadID
 	}
 
 	async function handleThreadDelete(e: any) {
-		console.log('handleThreadDelete')
-		currThreadID = ''
+		currID = e.detail.id
 		pageType = 'chat'
 		allThreads = await loadThreads()
 		await chat.getThread("")
@@ -123,37 +162,38 @@
 	let transcriptions : Transcriptions
 
 	const handleTranscriptionSwitch = async (e: any) => {
-		currThreadID = e.detail.transcriptionId
+		currID = e.detail.transcriptionId
 		pageType = 'transcribe'
-		await transcribe.getTranscription(currThreadID)
 	}
 
 	async function handleTranscriptionAdd(e: any) {
-		console.log('handleTranscriptionAdd')
-		currThreadID = e.detail.id
+		currID = e.detail.id
 		pageType = 'transcribe'
 		allTranscriptions = await loadTranscriptions()
 	}
 
 	async function handleTranscriptionDelete(e: any) {
-		console.log('handleTranscriptionDelete')
-		currThreadID = ''
+		currID = ''
 		pageType = 'transcribe'
 		allTranscriptions = await loadTranscriptions()
 	}
 	
 	async function handleNew(e:any){
-		currThreadID = e.detail.id
+		currID = e.detail.id
+		pageType = e.detail.pageType
+	}
+
+	async function handleDeleteAll(e:any){
+		currID = ''
 		pageType = e.detail.pageType
 
 		if(pageType == 'chat'){
-			await chat.getThread("").then(()=>{
-				chat.scrollToBottom()
-			})
-		}else if(pageType == 'transcribe'){
-			await transcribe.getTranscription("")
+			allThreads = []
+		}else{
+			allTranscriptions = []
 		}
 	}
+	
 </script>
 
 <div class={"drawer h-[100svh] max-h-[100svh] " + (loggedIn ? " drawer-mobile" : "")}>
@@ -199,16 +239,18 @@
 		{#if loggedIn}
 			{#if pageType == 'chat'}
 				<Chat
-					threadID={currThreadID}
+					threadID={currID}
 					on:updatedoc={handleThreadAdd}
 					on:adddoc={handleThreadAdd}
+					on:chatUpdate={onThreadUpdate}
 					bind:this={chat}
 				/>
 			{:else if pageType == "transcribe"}
 				<Transcribe
 					on:transcriptionNew={handleTranscriptionAdd}
 					on:transcriptionUpdate={handleTranscriptionAdd}
-					transcriptionId={currThreadID}
+					on:newTranscription={onTranscriptionUpdate}
+					transcriptionId={currID}
 					bind:this={transcribe}
 				/>
 			{/if}
@@ -227,13 +269,37 @@
 				<form on:submit|preventDefault={() => handleLogout()}>
 					<button type="submit" class="btn btn-primary w-full">Logout</button>
 				</form>
+				<div class="collapse bg-base-200 shodow-inner rounded-box">
+					<input type="checkbox" class="peer" /> 
+					<div class="collapse-title text-primary-content">
+						<div class="col-span-2 flex flex-col gap-4">
+							<h1 class="text-sm text-secondary font-bold">Total estimated cost</h1>
+							<h1 class="text-sm font-bold">{((totalDuration/60 * 0.006) + (usedTokens/1000 * 0.002)).toFixed(4)} USD</h1>
+							<h1 class="text-sm text-accent font-bold">Click here for usage breakdown</h1>
+						</div>
+					</div>
+					<div class="collapse-content"> 
+						<div class="grid grid-cols-2 grid-auto-fr rounded-box bg-base-200 gap-4 shadow-inner">
+							<h1 class="text-md text-secondary font-bold">Time</h1>
+							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
+							<h1 class="text-sm ">{toSeconds(totalDuration,"mm[m] ss[s] SS[ms]")}</h1>
+							<h1 class="text-sm ">{(totalDuration/60 * 0.006).toFixed(4)} USD</h1>
+							<h1 class="text-md text-secondary font-bold">Total tokens</h1>
+							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
+							<h1 class="text-sm ">{usedTokens}</h1>
+							<h1 class="text-sm ">{(usedTokens/1000 * 0.002).toFixed(4)} USD</h1>
+						</div>
+					</div>
+				  </div>
 				<Transcriptions
 					on:transcriptionSwitch={handleTranscriptionSwitch}
 					on:transcriptionNew={handleTranscriptionAdd}
 					on:transcriptionDelete={handleTranscriptionDelete}
 					on:onNewThread={handleNew}
+					on:deleteAll={handleDeleteAll}
+					totalTranscribed={totalDuration}
 					bind:this={transcriptions}
-					currTranscriptionID={currThreadID}
+					currTranscriptionID={currID}
 					transcriptions={allTranscriptions}
 				/>
 				<Threads
@@ -241,9 +307,11 @@
 					on:threadswitchNew={handleThreadSwitch}
 					on:threaddelete={handleThreadDelete}
 					on:onNewThread={handleNew}
+					on:deleteAll={handleDeleteAll}
+					usedTokens = {usedTokens}
 					bind:this={threads}
 					threads={allThreads}
-					currThreadID={currThreadID}
+					currThreadID={currID}
 				/>
 			{/if}
 		</ul>

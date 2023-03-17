@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 const languages = {
 
     English: "en",
@@ -70,5 +72,33 @@ const languagesArray = Object.keys(languages)
 // give me the language code as an array
 
 const languagesCodeArray = Object.values(languages)
+
+export function formatBytes(bytes, decimals = 2) {
+    if (!+bytes) return '0 Bytes'
+
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+}
+
+export function getBytesFromUnit(unit, value) {
+    if (!+value) return 0
+
+    const k = 1024
+    const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+
+    const i = sizes.indexOf(unit)
+
+    return value * Math.pow(k, i)
+}
+
+
+export function toSeconds(time, format = 'mm:ss:SS'){
+    return moment(time,"s.S").format(format)
+}
 
 export { languages, languagesArray, languagesCodeArray }

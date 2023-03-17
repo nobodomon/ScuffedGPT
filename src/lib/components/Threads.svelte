@@ -13,40 +13,12 @@
     
     export let threads : any[] = [];
 
-    let loading : boolean = true;
-
     export let currThreadID : string;
 
-    const dispatcher = createEventDispatcher();
+    export let usedTokens : number;
 
-    function switchThread(threadId : any) {
-        currThreadID = threadId;
-        console.log("Switching to thread: " + threadId);
-        dispatch("threadswitch", {
-            threadID: threadId,
-        });
-    }
 
-    function newThread() {
-        currThreadID = "";
-        dispatch("threadswitchNew", {
-            threadID: "",
-        });
-    }
-
-    function deleteThread(threadId : any) {
-        deleteDoc(doc(threadsCollection, threadId));
-        dispatch("threaddelete", {
-        });
-    }
-
-    function onNewThread() {
-        dispatch("onNewThread", {
-            id: "",
-            pageType: "chat",
-        });
-    }
-    
+    let loading : boolean = true;
 
     function truncate(str : string, len : number) {
         return (str.length > len) ? str.substr(0, len-1) + '...' : str;
@@ -63,6 +35,44 @@
     function deleteAllThreads() {
         console.log("Deleting all threads");
         dispatch("deleteAllThreads", {
+        });
+    }
+
+    function switchThread(threadId : any) {
+        currThreadID = threadId;
+        console.log("Switching to thread: " + threadId);
+        dispatch("threadswitch", {
+            id: threadId,
+        });
+    }
+
+    function deleteThread(threadId : any) {
+        deleteDoc(doc(threadsCollection, threadId));
+        dispatch("threaddelete", {
+            id:"",
+            pageType:"chat",
+        });
+    }
+
+    function onNewThread() {
+        dispatch("onNewThread", {
+            id: "",
+            pageType: "chat",
+        });
+    }
+    
+    function onDeleteAll(){
+        const q = query(threadsCollection, where("users", "==", auth.currentUser?.uid));
+
+        onSnapshot(q, (querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                deleteDoc(doc.ref);
+            });
+        });
+
+        dispatch("deleteAll", {
+            id: "",
+            pageType: "chat",
         });
     }
 
@@ -86,22 +96,13 @@
             <button class="btn btn-base grow" on:click={() => onNewThread()}>
                 New Thread
             </button>
-            <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> deleteAllThreads()}>
+            <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> onDeleteAll()}>
                 <div class="w-10 p-2">
                     <MdDeleteSweep />
                 </div>
             </button>
         </div>
         <div class="divider"></div>
-        <div class="flex justify-between items-center">
-            
-			<div class="btn btn-ghost">
-				{getTokensFromAllThreads(threads)} tokens
-			</div>
-			<div class="btn btn-ghost">
-				${(getTokensFromAllThreads(threads)/1000 * 0.002).toFixed(4)}
-			</div>
-        </div>
         {#each threads as thread}
             <div class="w-full bordered flex items-center gap-1">
                 <button class={"btn grow " + (thread.id === currThreadID ? "btn-primary":"btn-base-100")} on:click|preventDefault={() => switchThread(thread.id)}>

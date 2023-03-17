@@ -7,16 +7,15 @@
 
     import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where} from "firebase/firestore";
 	import type { ChatCompletionRequestMessage } from "openai"
+	import { toSeconds } from "../../utils"
 
     const dispatch = createEventDispatcher();
     
     export let transcriptions : any[] = [];
-
-    let loading : boolean = true;
-
+    export let totalTranscribed : number;
     export let currTranscriptionID : string;
 
-    const dispatcher = createEventDispatcher();
+    let loading : boolean = true;
 
     function switchTranscription(transcriptionId : any) {
         currTranscriptionID = transcriptionId;
@@ -63,6 +62,21 @@
         });
     }
 
+    function onDeleteAll(){
+        const q = query(transcriptionsCollection, where("user", "==", auth.currentUser?.uid));
+
+        onSnapshot(q, (querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                deleteDoc(doc.ref);
+            });
+        });
+
+        dispatch("deleteAll", {
+            id: "",
+            pageType: "transcribe",
+        });
+    }
+
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
@@ -81,7 +95,7 @@
             <button class="btn btn-base grow" on:click={() => onNewThread()}>
                 New Transcription
             </button>
-            <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> deleteAllTranscriptions()}>
+            <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> onDeleteAll()}>
                 <div class="w-10 p-2">
                     <MdDeleteSweep />
                 </div>

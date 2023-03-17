@@ -16,7 +16,6 @@ export function getTokens(input: string): number {
 export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[]){
 	let tokens = 0
 	chatMessages.forEach((message) => {
-		console.log(message);
 		tokens += getTokens(message.content)
 	})
 

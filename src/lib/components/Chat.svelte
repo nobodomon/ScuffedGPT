@@ -11,7 +11,7 @@
 
 	import {createEventDispatcher} from 'svelte';
 	import { onMount } from 'svelte'
-	import { getTokens } from '$lib/tokenizer'
+	import { getTokens, getTotalTokens } from '$lib/tokenizer'
 
     export let threadID = ""
 	let threadname = ""
@@ -27,9 +27,17 @@
 	let scrollToDiv: HTMLDivElement
 	
 	onMount(async () => {
-		await getThread(threadID)
-		scrollToBottom()
+		// await getThread(threadID)
+		// scrollToBottom()
 	})
+
+	$: if(threadID !== ""){
+		getThread(threadID).then(() => {
+			scrollToBottom()
+		})
+	}else{
+		chatMessages = []
+	}
 
 
 	const dispatch = createEventDispatcher();
@@ -54,6 +62,8 @@
 			payload: JSON.stringify({ messages: chatMessages })
 		})
 
+		const promptToken = getTokens(chatQuery)
+
 		chatQuery = ''
 
 		eventSource.addEventListener('error', handleError)
@@ -65,9 +75,18 @@
 				if (e.data === '[DONE]') {
 					console.log(e);
 					chatMessages = [...chatMessages, { role: 'assistant', content: answer }]
+
+					const ansToken = await getTokens(answer)
+
 					answer = ''
 
                     await updateDb();
+
+
+					dispatch("chatUpdate", {
+						tokensUsed: promptToken + ansToken,
+					});
+
 					return
 				}
 				
@@ -119,6 +138,7 @@
         }
     }
 
+
 	export async function getThread(threadId: string){
 		fetching = true;
 		if(threadId == ""){
@@ -144,15 +164,6 @@
 		
 	}
 
-	function getTotalTokens(chatMessages: ChatCompletionRequestMessage[]){
-		let tokens = 0
-		chatMessages.forEach((message) => {
-			console.log(message);
-			tokens += getTokens(message.content)
-		})
-
-		return tokens
-	}
 </script>
 <div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-primary shadow-lg rounded-md gap-4"> 
