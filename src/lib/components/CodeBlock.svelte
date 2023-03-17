@@ -18,7 +18,7 @@
     {@html github}
 </svelte:head>
 
-<div class="mockup-code my-4 min-w-full">
+<div class="mockup-code my-4 sm:max-w-full max-w-sm">
     <HighlightAuto code={code} let:highlighted>
         <LineNumbers {highlighted} />
     </HighlightAuto>

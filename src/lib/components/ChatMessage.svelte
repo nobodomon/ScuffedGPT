@@ -7,12 +7,11 @@
 	export let message: string
 	export let loading = false
 	export let user: any
-	let formattedText = ""; // initialize the formatted text string
-	let inCodeBlock = false; // keep track of whether we are inside a code block or not
 
-	let parts: any[] = []; // initialize the parts array
 
 	function formatText(message: string) {
+		let formattedText = ""; // initialize the formatted text string
+		let parts: any[] = []; // initialize the parts array
 		parts = message.split("```"); // split the text by the code block delimiter
 
 		for (let i = 0; i < parts.length; i++) {
@@ -30,12 +29,12 @@
 		}
     // combine the parts back into a single string
     	formattedText = parts.join("");
-	}
 
-	formatText(message);
+		return parts;
+	}
 </script>
 
-<div class={"flex gap-4 justify-start p-4 " + (type === "user" ? "bg-base-200": "bg-base-300")}>
+<div class={"flex gap-4 justify-center p-4 " + (type === "user" ? "bg-base-200": "bg-base-300")}>
 	<div class="chat-image avatar self-start">
 		<div class="w-8 rounded-full">
 			<!-- <img
@@ -55,8 +54,8 @@
 		</div>
 	</div>
 	
-	<div class="w-full">
-		{#each parts as block}
+	<div class="w-full text-base-content max-w-[1000px]">
+		{#each formatText(message) as block}
 			{#if typeof block === 'string'}
 				{@html block}
 			{:else}

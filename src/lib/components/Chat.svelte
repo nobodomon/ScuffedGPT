@@ -60,13 +60,13 @@
 		eventSource.addEventListener('message', async (e) => {
 			scrollToBottom()
 			try {
+				loading = false
 				if (e.data === '[DONE]') {
 					console.log(e);
 					chatMessages = [...chatMessages, { role: 'assistant', content: answer }]
 					answer = ''
 
                     await updateDb();
-					loading = false
 					return
 				}
 				
@@ -145,21 +145,24 @@
 	
 </script>
 <div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
-	<div class="form-control w-full">
-        <div class="input-group">
-          <input 
-            type="text" 
-            placeholder="Unnamed thread" 
-            class="input w-full input-bordered"
-            bind:value={threadname}
-            />
-          <button class="btn btn-primary" on:click={async ()=>{
-			await updateDb()
-		  }}>
-            Submit
-          </button>
-        </div>
-    </div>
+	<div class="navbar bg-primary shadow-lg rounded-md gap-4"> 
+            
+		<div class="form-control w-full shadow-inner">
+			<div class="input-group">
+			  <input 
+				type="text" 
+				placeholder="Unnamed thread" 
+				class="input w-full input-bordered text-base-content"
+				bind:value={threadname}
+				/>
+			  <button class="btn btn-primary" on:click={async ()=>{
+				await updateDb()
+			  }}>
+				Submit
+			  </button>
+			</div>
+		</div>
+	</div>
 	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow">
 		<div class="flex flex-col">
 			
@@ -173,8 +176,8 @@
 				user= {auth.currentUser}
 				/>
 			{/each}
-			{#if loading}
-				<ChatMessage 
+			{#if answer != ""}
+			<ChatMessage 
 				type="assistant" 
 				message={answer} 
 				loading={loading} 
@@ -189,7 +192,7 @@
 		class="flex w-full rounded-md gap-4 bg-base-300 p-4"
 		on:submit|preventDefault={() => handleSubmit()}
 	>
-		<input type="text" class="input input-bordered w-full" bind:value={chatQuery} />
+		<input type="text" class="input input-bordered w-full text-base-content" bind:value={chatQuery} />
 		{#if loading}
 			<button type="submit" class="btn btn-primary" disabled>
 				Loading...

@@ -178,11 +178,13 @@
 </script>
 
 
-<div class="h-[0px] max-h-full relative grow w-full flex flex-col gap-4 md:flex-row">
-    {#if transcriptionId == ""}
-    <div class="flex flex-col gap-4 px-4">
+<div class="h-[0px] max-h-full relative grow w-full flex flex-col gap-4 md:flex-row pb-4">
+    {#if loading}
+    <progress class="progress w-full"></progress>
+    {:else if output == ""}
+    <div class="flex flex-col gap-4 md:pl-4 md:pr-0 px-4">
         <Dropzone
-        containerClasses="card md:w-96 md:h-96 bg-gray-900 shadow-xl p-4"
+        containerClasses="card md:w-96 h-full border-primary border bg-base-900 shadow-xl p-4"
         disableDefaultStyles={true}
         multiple={false}
         on:drop={handleFileUpload}
@@ -190,19 +192,25 @@
         >   
             <div class="flex flex-col items-stretch justify-between w-full h-full gap-4 prose">
                 <h1 class="
-                w-full 
-                grow
-                flex 
-                items-center 
-                justify-center
-                border-dashed border-2 rounded-lg
-                ">Drag and drop a .mp3 file</h1>
+                    w-full 
+                    grow
+                    h-48
+                    flex
+                    text-lg 
+                    items-center 
+                    justify-center
+                    border-dashed border-2 rounded-lg
+                    text-base-content
+                ">Drag and drop your file here</h1>
+                <h1 class="text-md text-base-content">
+                    <span class="font-bold">Supported formats:</span> {allowedFormatsString}
+                </h1>
                 <input type="file" disabled={files.accepted.length > 0} accept={allowedFormatsString} on:change={selectFile} on:click|preventDefault={()=>{}} class="file-input file-input-bordered file-input-primary w-full" />
             </div>
         </Dropzone>
         {#if files.accepted.length > 0}
-        <div class="card w-96 bg-base-100 shadow-xl">
-            <div class="card-body">
+        <div class="card w-full bg-base-300 shadow-xl">
+            <div class="card-body  text-base-content">
                 
                 <div class="card-actions justify-end">
                     <button class="btn btn-square btn-sm" on:click={clearUploads}>
@@ -213,118 +221,115 @@
                 <p>{files.accepted[0].name}</p>
             </div>
           </div>
-        <select class="select select-primary w-full" on:change={(e)=>{findLanguageCode(e)}}>
+        <select class="select select-primary w-full text-base-content" on:change={(e)=>{findLanguageCode(e)}}>
             <option disabled selected>What language is this in?</option>
             {#each languagesArray as lang}
                 <option value={lang}>{lang}</option>
             {/each}
           </select>
-        <input type="text" bind:value={language} placeholder="Language" disabled class="input input-bordered input-primary w-full" />
+        <input type="text" bind:value={language} placeholder="Language" disabled class="input input-bordered text-base-content input-primary w-full" />
         <button class="btn btn-primary" on:click={handleSubmit}>Upload</button>
         {/if}
     </div>
-    {/if}
-    <div class="flex flex-col max-w-full grow md:w-[0px] h-full max-h-full relative md:pr-4 pb-4 px-4 gap-4">
-        <div class="navbar bg-gray-900 rounded-md gap-4"> 
+    {:else}
+    <div class="flex flex-col max-w-full grow md:w-[0px] h-full max-h-full relative px-4 gap-4">
+        <div class="navbar bg-primary shadow-lg shadow-lg rounded-md gap-4"> 
             
-            <input type="text" placeholder="Transcription name" class="grow input input-bordered input-primary w-full" bind:value={transcriptionName}/>
-            <label class="swap btn btn-ghost">
+            <input type="text" placeholder="Transcription name" class="grow input input-bordered text-base-content input-primary w-full" bind:value={transcriptionName}/>
+            <label class="swap btn btn-ghost text-base-content">
                 <input type="checkbox" on:change={()=>{transcriptionModeRaw = !transcriptionModeRaw}}/>
                 <div class="swap-on">RAW</div>
                 <div class="swap-off">CHAT</div>
             </label>
-            <button class="btn btn-ghost" on:click={saveTranscription}>Save</button>
+            <button class="btn btn-ghost text-base-content" on:click={saveTranscription}>Save</button>
             
         </div>
-        <div class="max-w-full grow p-4 gap-4 flex flex-col relative h-full bg-gray-900 rounded-md overflow-y-auto">
-            
-            {#if loading}
-            <progress class="progress progress-primary w-56 place-items-center"></progress>
-            {:else}
-                {#if transcriptionModeRaw}
-                    <div class="flex items-center">
-                        <div class="flex grow flex-col">
-                            <span>Transcription Result</span>
-                            <div class="flex flex-col gap-4">
-                                {output}
-                            </div>
-                            
+        <div class="max-w-full grow p-4 gap-4 flex flex-col relative h-full bg-base-300 rounded-md overflow-y-auto">
+            {#if transcriptionModeRaw}
+                <div class="flex items-center">
+                    <div class="flex grow flex-col">
+                        <span class=" text-base-content font-bold">Transcription Result</span>
+                        <div class="flex flex-col gap-4 text-base-content">
+                            {output}
                         </div>
-
-                        <button class="btn btn-ghost text-sm" on:click={()=>{copyToClipboard(output)}}>
-                            <div class="w-10 p-2">
-                                <MdContentCopy />
-                            </div>
-                            Copy All
-                        </button>
+                        
                     </div>
 
-                    {#each segments as segment}
-                        <div class="flex items-center">
-                            <div class="flex grow flex-col">
-                                <span class="font-bold">[{toSeconds(segment.start)} - {toSeconds(segment.end)}]</span>
-                                {segment.text}
+                    <button class="btn btn-ghost text-sm text-base-content" on:click={()=>{copyToClipboard(output)}}>
+                        <div class="w-10 p-2">
+                            <MdContentCopy />
+                        </div>
+                        Copy All
+                    </button>
+                </div>
+
+                {#each segments as segment}
+                    <div class="flex items-center">
+                        <div class="flex grow flex-col text-base-content">
+                            <span class="font-bold text-base-content">[{toSeconds(segment.start)} - {toSeconds(segment.end)}]</span>
+                            {segment.text}
+                        </div>
+                        <button class="btn btn-ghost text-sm text-base-content" on:click={()=>{copyToClipboard(segment.text)}}>
+                            <div class="w-10 p-2  text-base-content">
+                                <MdContentCopy />
                             </div>
-                            <button class="btn btn-ghost text-sm" on:click={()=>{copyToClipboard(segment.text)}}>
+                            Copy Text
+                        </button>
+                    </div>
+                {/each}
+            {:else}
+                <div class="chat chat-start">
+                    <div class="chat-image avatar">
+                    <div class="w-10 rounded-full">
+                        <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
+                    </div>
+                    <div class="chat-bubble chat-bubble-primary">Transcription Results</div>
+                </div>
+                <div class="chat chat-start">
+                    <div class="chat-image avatar">
+                    <div class="w-10 rounded-full">
+                        <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
+                    </div>
+                    <div class="chat-bubble chat-bubble-primary">
+                        <div class="flex items-center flex-col gap-4">
+                            <div class="flex grow flex-col">
+                                {output}
+                            </div>
+                            <button class="btn btn-ghost text-sm self-end" on:click={()=>{copyToClipboard(output)}}>
                                 <div class="w-10 p-2">
                                     <MdContentCopy />
                                 </div>
                                 Copy Text
                             </button>
                         </div>
-                    {/each}
-                {:else}
-                    <div class="chat chat-start">
-                        <div class="chat-image avatar">
-                        <div class="w-10 rounded-full">
-                            <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
-                        </div>
-                        <div class="chat-bubble chat-bubble-primary">Transcription Results</div>
                     </div>
-                    <div class="chat chat-start">
-                        <div class="chat-image avatar">
-                        <div class="w-10 rounded-full">
-                            <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
-                        </div>
-                        <div class="chat-bubble chat-bubble-primary">
-                            <div class="flex items-center flex-col gap-4">
-                                <div class="flex grow flex-col">
-                                    {output}
-                                </div>
-                                <button class="btn btn-ghost text-sm self-end" on:click={()=>{copyToClipboard(output)}}>
-                                    <div class="w-10 p-2">
-                                        <MdContentCopy />
-                                    </div>
-                                    Copy Text
-                                </button>
+                </div>
+                {#each segments as segment}
+                <div class="chat chat-start">
+                    <div class="chat-image avatar">
+                    <div class="w-10 rounded-full">
+                        <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
+                    </div>
+                    <div class="chat-bubble">
+                        <div class="flex items-center flex-col gap-4">
+                            <div class="flex grow flex-col">
+                                <span class="font-bold">[{toSeconds(segment.start)} - {toSeconds(segment.end)}]</span>
+                                {segment.text}
                             </div>
-                        </div>
-                    </div>
-                    {#each segments as segment}
-                    <div class="chat chat-start">
-                        <div class="chat-image avatar">
-                        <div class="w-10 rounded-full">
-                            <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
-                        </div>
-                        <div class="chat-bubble">
-                            <div class="flex items-center flex-col gap-4">
-                                <div class="flex grow flex-col">
-                                    <span class="font-bold">[{toSeconds(segment.start)} - {toSeconds(segment.end)}]</span>
-                                    {segment.text}
+                            <button class="btn btn-ghost text-sm self-end" on:click={()=>{copyToClipboard(segment.text)}}>
+                                <div class="w-10 p-2">
+                                    <MdContentCopy />
                                 </div>
-                                <button class="btn btn-ghost text-sm self-end" on:click={()=>{copyToClipboard(segment.text)}}>
-                                    <div class="w-10 p-2">
-                                        <MdContentCopy />
-                                    </div>
-                                    Copy Text
-                                </button>
-                            </div>
+                                Copy Text
+                            </button>
                         </div>
                     </div>
-                    {/each}
-                    
-                {/if}
+                </div>
+                {/each}
+                
             {/if}
         </div>
     </div>
+    
+    {/if}
 </div>

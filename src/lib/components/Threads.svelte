@@ -68,18 +68,18 @@
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-<div tabindex="0" class="collapse collapse-arrow border border-base-300 bg-neutral rounded-box">
+<div tabindex="0" class="collapse collapse-arrow shadow-inner bg-base-200 rounded-box">
     
      <input type="checkbox" class="peer" /> 
     <div class="collapse-title text-xl font-medium">
       Threads
     </div>
-    <div class="collapse-content bg-neutral grid grid-flow-row auto-rows-fr gap-4 menu "> 
+    <div class="collapse-content grid grid-flow-row auto-rows-fr gap-4 menu "> 
         {#if threads == null}
 		<progress class="progress progress-primary w-56"></progress>
         {:else}
         <div class="w-full flex items-center gap-1">
-            <button class="btn btn-outline btn-primary grow" on:click={() => onNewThread()}>
+            <button class="btn btn-base grow" on:click={() => onNewThread()}>
                 New Thread
             </button>
             <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> deleteAllThreads()}>
@@ -88,34 +88,20 @@
                 </div>
             </button>
         </div>
+        <div class="divider"></div>
         {#each threads as thread}
-            {#if thread.id === currThreadID}
             <div class="w-full bordered flex items-center gap-1">
-                <button class="btn btn-primary grow" on:click|preventDefault={() => switchThread(thread.id)}>
+                <button class={"btn grow " + (thread.id === currThreadID ? "btn-primary":"btn-base-100")} on:click|preventDefault={() => switchThread(thread.id)}>
                     {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
                 </button>
-                <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> deleteThread(thread.id)}>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <button class="btn btn-ghost btn-square text-base-content" on:click|preventDefault={()=> deleteThread(thread.id)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x stroke-base-content" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                         <line x1="18" y1="6" x2="6" y2="18" />
                         <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                 </button>
             </div>
-            {:else}
-            <div class="w-full flex items-center gap-1">
-                <button class="btn btn-outline btn-primary grow" on:click|preventDefault={() => switchThread(thread.id)}>
-                    {thread.name  == "" ? "Unnamed Thread" :  transform(thread.name)}
-                </button>
-                <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> deleteThread(thread.id)}>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-            {/if}
         {/each}
     {/if}
     </div>

@@ -54,6 +54,7 @@
 		"moment": "^2.29.4",
 		"openai": "^3.2.1",
 		"sse.js": "^0.6.1",
-		"svelte-icons": "^2.1.0"
+		"svelte-icons": "^2.1.0",
+		"theme-change": "^2.5.0"
 	}
 }
