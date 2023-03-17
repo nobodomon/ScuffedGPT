@@ -80,9 +80,9 @@
 </script>
 
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-<div tabindex="0" class="collapse collapse-arrow shadow-inner bg-base-200 rounded-box">
+<div tabindex="0" class="collapse collapse-arrow shadow-inner bg-base-200">
     
-     <input type="checkbox" class="peer" /> 
+    <input type="checkbox" class="peer" /> 
     <div class="collapse-title text-xl font-medium">
       Transcriptions
     </div>

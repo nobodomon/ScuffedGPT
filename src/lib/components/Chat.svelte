@@ -26,6 +26,8 @@
     let auth = getAuth()
 	let scrollToDiv: HTMLDivElement
 	
+	const chatQueryArea = document.getElementById('chatQueryArea') as HTMLTextAreaElement
+
 	onMount(async () => {
 		// await getThread(threadID)
 		// scrollToBottom()
@@ -166,17 +168,17 @@
 
 </script>
 <div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
-	<div class="navbar bg-primary shadow-lg rounded-md gap-4"> 
+	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
             
 		<div class="form-control grow shadow-inner">
 			<div class="input-group">
 			  <input 
 				type="text" 
 				placeholder="Unnamed thread" 
-				class="input w-full input-bordered text-base-content"
+				class="input w-full text-base-content"
 				bind:value={threadname}
 				/>
-			  <button class="btn btn-primary" on:click={async ()=>{
+			  <button class="btn btn-secondary" on:click={async ()=>{
 				await updateDb()
 			  }}>
 				Submit
@@ -186,10 +188,10 @@
 		
 		<label class="swap">
 			<input type="checkbox" />
-			<div class="btn btn-secondary break-keep swap-off">
+			<div class="btn btn-accent break-keep swap-off">
 				{getTotalTokens(chatMessages)} tokens
 			</div>
-			<div class="btn btn-secondary break-keep swap-on">
+			<div class="btn btn-accent break-keep swap-on">
 				${(getTotalTokens(chatMessages)/1000 * 0.002).toFixed(4)}
 			</div>
 		</label>
@@ -220,10 +222,10 @@
 		<div class="" bind:this={scrollToDiv} />
 	</div>
 	<form
-		class="flex w-full rounded-md gap-4 bg-base-300 p-4"
+		class="flex w-full items-stretch rounded-md gap-4 bg-base-300 p-4"
 		on:submit|preventDefault={() => handleSubmit()}
 	>
-		<input type="text" class="input input-bordered w-full text-base-content" bind:value={chatQuery} />
+		<input class="input input-bordered w-full text-base-content" bind:value={chatQuery} />
 		{#if loading}
 			<button type="submit" class="btn btn-primary" disabled>
 				Loading...

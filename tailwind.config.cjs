@@ -7,17 +7,13 @@ const config = {
   // daisyui:{
   //   themes: [
   //     {
-  //         // 'dark':{
-  //         //     'primary': '#800080',
-  //         //     'secondary': '#DDA0DD',
-  //         //     'accent': '#E6E6FA',
-  //         //     'neutral': '#D8BFD8',
-  //         //     'base': '#FFFFFF',
-  //         //     'info': '#EE82EE',
-  //         //     'success': '#B4EEB4',
-  //         //     'warning': '#FFA07A',
-  //         //     'error': '#8B0000',
-  //         // }
+  //         'dark':{
+  //             ...require("daisyui/src/colors/themes")["[data-theme=dark]"],
+  //             'primary': '#3300cc',
+  //         },
+  //         'light':{
+  //           ...require("daisyui/src/colors/themes")["[data-theme=light]"],
+  //         }
   //     }
   //   ]
   // },

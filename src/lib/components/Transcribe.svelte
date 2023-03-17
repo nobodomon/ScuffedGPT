@@ -216,7 +216,7 @@
     {:else if output == ""}
     <div class="flex flex-col gap-4 md:pl-4 md:pr-0 px-4">
         <Dropzone
-        containerClasses="card md:w-96 bg-base-300 shadow-xl p-4 hover:bg-base-200 transition "
+        containerClasses="card md:w-96 bg-base-200 shadow-inner p-4 hover:bg-base-300 transition "
         disableDefaultStyles={true}
         maxSize={getBytesFromUnit("MiB",25)}
         on:drop={handleFileUpload}
@@ -233,8 +233,9 @@
                     items-center 
                     justify-center
                     text-base-content
+                    font-bold
                 ">Drag and drop your file here</h1>
-                <div class="divider text-base-content">Supported Formats</div>
+                <div class="divider text-base-content font-bold ">Supported Formats</div>
                 <h1 class="text-md text-base-content flex flex-col">
                     {allowedFormatsString}
                 </h1>
@@ -254,7 +255,7 @@
         {/if}
     </div>
     <div class="flex flex-col grow gap-4 md:pr-4 md:pl-0 px-4">
-            <div class="card w-full bg-base-300 shadow-xl">
+            <div class="card w-full bg-base-200 shadow-inner">
                 <div class="card-body  text-base-content">
                     
                     <div class="card-title flex justify-between">
@@ -302,41 +303,33 @@
     </div>
     {:else}
     <div class="flex flex-col max-w-full grow md:w-[0px] h-full max-h-full relative px-4 gap-4">
-        <div class="navbar bg-primary shadow-lg shadow-lg rounded-md gap-4"> 
-            
-            <input type="text" placeholder="Transcription name" class="grow input input-bordered text-base-content input-primary w-full" bind:value={transcriptionName}/>
-            <label class="swap btn btn-ghost text-base-content">
-                <input type="checkbox" on:change={()=>{transcriptionModeRaw = !transcriptionModeRaw}}/>
-                <div class="swap-on">RAW</div>
-                <div class="swap-off">CHAT</div>
-            </label>
-            <button class="btn btn-ghost text-base-content" on:click={saveTranscription}>Save</button>
-            
+        <div class="navbar bg-base-200 shadow-lg shadow-lg rounded-md gap-4"> 
+            <input type="text" placeholder="Transcription name" class="grow input text-base-content w-full" bind:value={transcriptionName}/>
+            <button class="btn btn-secondary text-secondary-content" on:click={saveTranscription}>Save</button>
         </div>
         <div class="max-w-full grow p-4 gap-4 flex flex-col relative h-full bg-base-300 rounded-md overflow-y-auto">
-            {#if transcriptionModeRaw}
                 <div class="flex items-center">
                     <div class="flex grow flex-col gap-4">
                         <div class = "stats-vertical stats shadow md:stats-horizontal self-start">
                             <div class="stat">
-                                <div class="stat-figure text-primary">
+                                <div class="stat-figure text-secondary">
                                     <div class="w-10">
                                         <MdAccessTime />
                                     </div>
                                 </div>
                                 <div class="stat-title">Total Duration</div>
-                                <div class="stat-value text-primary text-sm">
+                                <div class="stat-value text-secondary text-sm">
                                     {toSeconds(durations?.reduce((a, b) => a + b, 0))}
                                 </div>
                             </div>
                             <div class="stat">
-                                <div class="stat-figure text-primary">
+                                <div class="stat-figure text-accent">
                                     <div class="w-10">
                                         <MdAttachMoney />
                                     </div>
                                 </div>
                                 <div class="stat-title">Estimated Cost</div>
-                                <div class="stat-value text-primary text-sm">
+                                <div class="stat-value text-accent text-sm">
                                     ${(durations?.reduce((a, b) => a + b, 0)/60 * 0.06).toFixed(4)}
                                 </div>
                             </div>
@@ -361,7 +354,7 @@
                 </div>
 
                 {#each segments as segment}
-                    <div class="flex items-center odd:bg-base-200 p-4 even:bg-base-100">
+                    <div class="flex items-center p-4 bg-base-100 rounded-box shadow-inner">
                         <div class="flex grow flex-col text-base-content">
                             <span class="font-bold text-base-content">[{toSeconds(segment.start)} - {toSeconds(segment.end)}]</span>
                             {segment.text}
@@ -374,57 +367,7 @@
                         </button>
                     </div>
                 {/each}
-            {:else}
-                <div class="chat chat-start">
-                    <div class="chat-image avatar">
-                    <div class="w-10 rounded-full">
-                        <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
-                    </div>
-                    <div class="chat-bubble chat-bubble-primary">Transcription Results</div>
-                </div>
-                <div class="chat chat-start">
-                    <div class="chat-image avatar">
-                    <div class="w-10 rounded-full">
-                        <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
-                    </div>
-                    <div class="chat-bubble chat-bubble-primary">
-                        <div class="flex items-center flex-col gap-4">
-                            <div class="flex grow flex-col">
-                                {output}
-                            </div>
-                            <button class="btn btn-ghost text-sm self-end" on:click={()=>{copyToClipboard(output)}}>
-                                <div class="w-10 p-2">
-                                    <MdContentCopy />
-                                </div>
-                                Copy Text
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                {#each segments as segment}
-                <div class="chat chat-start">
-                    <div class="chat-image avatar">
-                    <div class="w-10 rounded-full">
-                        <img src="https://ui-avatars.com/api/?name=S" alt="user avatar" /></div>
-                    </div>
-                    <div class="chat-bubble">
-                        <div class="flex items-center flex-col gap-4">
-                            <div class="flex grow flex-col">
-                                <span class="font-bold">[{toSeconds(segment.start)} - {toSeconds(segment.end)}]</span>
-                                {segment.text}
-                            </div>
-                            <button class="btn btn-ghost text-sm self-end" on:click={()=>{copyToClipboard(segment.text)}}>
-                                <div class="w-10 p-2">
-                                    <MdContentCopy />
-                                </div>
-                                Copy Text
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                {/each}
-                
-            {/if}
+            
         </div>
     </div>
     
