@@ -51,6 +51,7 @@
 			uid = ''
 			user = null
 			loggedIn = false
+			currID = ''
 		}
 	})
 
@@ -74,34 +75,27 @@
 		updateTokenUse(tokensUsed)
 	}
 
-	async function updateTokenUse(tokensUsed: number){
-		
-		const incr = increment(tokensUsed)
-
-		const userDoc = doc(firestore, "Users", uid);
-		
-
-		await setDoc(userDoc, {
-			tokensUsed: incr
-		}, {merge: true});
-	}
-
 	async function onTranscriptionUpdate(e: CustomEvent){
 		let duration = e.detail.duration
 		updateTranscriptionUse(duration)
 	}
 
+	async function updateTokenUse(tokensUsed: number){
+		const incr = increment(tokensUsed)
+		const userDoc = doc(firestore, "Users", uid);
+		await setDoc(userDoc, {
+			tokensUsed: incr
+		}, {merge: true});
+	}
+
 	async function updateTranscriptionUse(duration: number){
 		const incr = increment(duration)
-
 		const userDoc = doc(firestore, "Users", uid);
-
 		await setDoc(userDoc, {
 			transcriptionTime: incr
 		}, {merge: true});
 	}
 	
-
     async function loadThreads () {
         let threads : any[] = [];
         const q = query(threadsCollection, where("users", "==", uid));
@@ -111,7 +105,6 @@
             threads.push({
                 id: doc.id,
                 name: doc.data().name,
-                messages: doc.data().messages as ChatCompletionRequestMessage[]
             });
         });
 
@@ -129,15 +122,12 @@
 				id: doc.id,
 				name: doc.data().name,
 				text: doc.data().text,
-
 			});
 		});
-
 		return transcriptions;
 	}
 
 	let currID: string = ''
-
 	let chat : Chat;
 	let threads: Threads
 
@@ -153,10 +143,9 @@
 	}
 
 	async function handleThreadDelete(e: any) {
-		currID = e.detail.id
+		currID = ""
 		pageType = 'chat'
 		allThreads = await loadThreads()
-		await chat.getThread("")
 	}
 
 	let transcribe : Transcribe

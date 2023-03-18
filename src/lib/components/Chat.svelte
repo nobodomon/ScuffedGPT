@@ -42,9 +42,7 @@
 		chatMessages = []
 	}
 
-
 	const dispatch = createEventDispatcher();
-    
 
 	export function scrollToBottom() {
 		setTimeout(function () {
@@ -114,7 +112,6 @@
 		console.error(err)
 	}
 
-
     async function updateDb(){
         if(threadID != ""){
             await setDoc(doc(firestore, "Threads", threadID), {
@@ -141,24 +138,12 @@
         }
     }
 
-
 	export async function getThread(threadId: string){
 		fetching = true;
-		if(threadId == ""){
-			threadname = ""
-			chatMessages = []
-			fetching = false;
-			return;
-		}
 		getDoc(doc(firestore, "Threads", threadId)).then((doc) => {
 			if (doc.exists()) {
 				threadname = doc.data()!!.name
 				chatMessages = doc.data()!!.messages
-				fetching = false
-			} else {
-				// doc.data() will be undefined in this case
-				threadname = ""
-				chatMessages = []
 				fetching = false
 			}
 		}).catch((error) => {
