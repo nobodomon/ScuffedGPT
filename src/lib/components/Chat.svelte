@@ -38,6 +38,7 @@
 			scrollToBottom()
 		})
 	}else{
+		threadname = ""
 		chatMessages = []
 	}
 
