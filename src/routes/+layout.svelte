@@ -40,7 +40,7 @@
 			onSnapshot(userTokens, (doc) => {
 				if(doc.exists()){
 					usedTokens = doc.data().tokensUsed
-					totalDuration = doc.data().transcriptionTime
+					totalDuration = doc.data().transcriptionTime? doc.data().transcriptionTime : 0
 				}
 			});
 			
@@ -79,10 +79,11 @@
 		const incr = increment(tokensUsed)
 
 		const userDoc = doc(firestore, "Users", uid);
+		
 
-		await updateDoc(userDoc, {
+		await setDoc(userDoc, {
 			tokensUsed: incr
-		});
+		}, {merge: true});
 	}
 
 	async function onTranscriptionUpdate(e: CustomEvent){
@@ -95,9 +96,9 @@
 
 		const userDoc = doc(firestore, "Users", uid);
 
-		await updateDoc(userDoc, {
+		await setDoc(userDoc, {
 			transcriptionTime: incr
-		});
+		}, {merge: true});
 	}
 	
 
