@@ -1,28 +1,38 @@
 <script lang="ts">
-	import { SSE } from 'sse.js'
     import Dropzone from 'svelte-file-dropzone';
-    import {formatBytes, getBytesFromUnit, languages,languagesArray,languagesCodeArray, toSeconds} from"../../utils";
+    import {formatBytes, getBytesFromUnit, languages,languagesArray, toSeconds} from"../../utils";
     
     import {transcriptionsCollection} from "../../firebase"
 	import { getFirestore, addDoc, setDoc, doc, getDoc } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 	import { createEventDispatcher } from 'svelte'
-	import { onMount } from 'svelte'
 
     import MdContentCopy from 'svelte-icons/md/MdContentCopy.svelte'
     import MdRemoveCircleOutline from 'svelte-icons/md/MdRemoveCircleOutline.svelte'
     import MdAccessTime from 'svelte-icons/md/MdAccessTime.svelte'
     import MdAttachMoney from 'svelte-icons/md/MdAttachMoney.svelte'
-    import moment from 'moment'
 
     export let transcriptionId = ""
 
+	let scrollToDiv: HTMLDivElement
+    
     $: if(transcriptionId == "temp"){
     } else if(transcriptionId !== ""){
         getTranscription(transcriptionId)
     }else{
         resetVariables()
     }
+
+
+    $: transcriptionId == "temp" && false
+
+    $: transcriptionId != "" && 
+        getTranscription(transcriptionId).then(() => {
+            scrollToBottom()
+        })
+	
+    $: transcriptionId == "" && 
+        resetVariables()
 
     function resetVariables(){
         segments = []
@@ -32,7 +42,6 @@
         language = "en"
         durations = []
     }
-    
 
     let loading = false;
     let fetching = false;
@@ -61,10 +70,6 @@
     let processing: number = 0
 
     let durations: any[] = []
-
-    onMount(async () => {
-        await getTranscription(transcriptionId)
-    })
     
     let segments: any[] = []
 
@@ -200,6 +205,12 @@
     const copyToClipboard = (text: string) =>{
         navigator.clipboard.writeText(text)
     }   
+
+    export function scrollToBottom() {
+		setTimeout(function () {
+			scrollToDiv.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' })
+		}, 100)
+	}
 
 </script>
 
@@ -368,6 +379,7 @@
                     </div>
                 {/each}
             
+		    <div class="" bind:this={scrollToDiv} />
         </div>
     </div>
     

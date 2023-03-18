@@ -25,22 +25,17 @@
     let firestore = getFirestore()
     let auth = getAuth()
 	let scrollToDiv: HTMLDivElement
-	
-	const chatQueryArea = document.getElementById('chatQueryArea') as HTMLTextAreaElement
 
-	onMount(async () => {
-		// await getThread(threadID)
-		// scrollToBottom()
-	})
-
-	$: if(threadID !== ""){
+	$: threadID != "" && 
 		getThread(threadID).then(() => {
 			scrollToBottom()
-		})
-	}else{
+	})
+
+	$: threadID == "" && (
+		chatMessages = [],
 		threadname = ""
-		chatMessages = []
-	}
+	)
+	
 
 	const dispatch = createEventDispatcher();
 
@@ -149,7 +144,6 @@
 		}).catch((error) => {
 			console.log("Error getting document:", error);
 		});
-		
 	}
 
 </script>
@@ -186,7 +180,7 @@
 		<div class="flex flex-col">
 			
 		{#if fetching}
-			<progress class="progress progress-primary w-56 place-items-center"></progress>
+			<progress class="progress progress-primary w-full place-items-center"></progress>
 		{:else}
 			{#each chatMessages as message}
 				<ChatMessage 

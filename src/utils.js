@@ -98,7 +98,7 @@ export function getBytesFromUnit(unit, value) {
 
 
 export function toSeconds(time, format = 'mm:ss:SS'){
-    return moment(time,"s.S").format(format)
+    return moment.utc(time*1000).format(format)
 }
 
 export { languages, languagesArray, languagesCodeArray }
