@@ -12,6 +12,7 @@
 	import {createEventDispatcher} from 'svelte';
 	import { onMount } from 'svelte'
 	import { getTokens, getTotalTokens } from '$lib/tokenizer'
+	import TextRecognition from './TextRecognition.svelte'
 
     export let threadID = ""
 	let threadname = ""
@@ -21,11 +22,15 @@
 	let fetching: boolean = false
 
 	let chatQuery: string = ''
+
+	let showTextRecognition: boolean = false
 	let answer: string = ''
     let firestore = getFirestore()
     let auth = getAuth()
 	let scrollToDiv: HTMLDivElement
 
+	let image: File
+	
 	$: threadID != "" && 
 		getThread(threadID).then(() => {
 			scrollToBottom()
@@ -146,6 +151,66 @@
 		});
 	}
 
+	async function detectImg(e: ClipboardEvent){
+		if (e.clipboardData) {
+			const items = e.clipboardData.items;
+			if (items) {
+			let file: File | null = null;
+			for (let i = 0; i < items.length; i++) {
+				if (items[i].type.indexOf('image') !== -1) {
+				// Image is pasted, handle it here
+				file = items[i].getAsFile();
+				console.log(file)
+				await read(file).then((reader) => {
+					image = reader.result
+					showTextRecognition = true
+				})
+				}
+			}
+			}
+			// If items array does not exist, check for files array
+			else {
+			const files = e.clipboardData.files;
+			if (files.length > 0) {
+				// Files are pasted, check if an image is present and handle it accordingly
+				const imageFile = Array.from(files).find((file) => file.type.indexOf('image') !== -1);
+				if (imageFile) {
+				// Image is pasted, handle it here
+				await read(imageFile).then((reader) => {
+					image = reader.result
+					showTextRecognition = true
+				})
+				}
+			}
+			}
+		}
+	}
+
+	async function read (file: any) {
+        return new Promise<any>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader)
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+        })
+    }
+
+	function closeModal(){
+		showTextRecognition = false
+	}
+
+	function appendPrompt(e: any){
+		chatQuery = chatQuery + e.detail.text
+		showTextRecognition = false
+	}
+
+	function handleInput(e: any){
+		console.log(e)
+		if(e.key == "Enter" && !e.shiftKey){
+			handleSubmit()
+		}
+	}
+
 </script>
 <div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
@@ -205,7 +270,7 @@
 		class="flex w-full items-stretch rounded-md gap-4 bg-base-300 p-4"
 		on:submit|preventDefault={() => handleSubmit()}
 	>
-		<input class="input input-bordered w-full text-base-content" bind:value={chatQuery} />
+		<textarea class="textarea textarea-xs max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={chatQuery} />
 		{#if loading}
 			<button type="submit" class="btn btn-primary" disabled>
 				Loading...
@@ -214,4 +279,8 @@
 			<button type="submit" class="btn btn-primary">Send</button>
 		{/if}
 	</form>
+
+	<TextRecognition showModal={showTextRecognition} image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt}>
+
+	</TextRecognition>
 </div>
