@@ -54,13 +54,19 @@
 		if(chatQuery.trim() === "") return
 
 		loading = true
+
+
 		chatMessages = [...chatMessages, { role: 'user', content: chatQuery }]
+
+		//Send last 3 of chatmessages
+
+		const gptPayload = chatMessages.slice(-3)
 
 		const eventSource = new SSE('/api/chat', {
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			payload: JSON.stringify({ messages: chatMessages })
+			payload: JSON.stringify({ messages: gptPayload })
 		})
 
 		const promptToken = getTokens(chatQuery)
