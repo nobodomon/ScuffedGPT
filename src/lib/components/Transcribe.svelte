@@ -24,9 +24,7 @@
     }
 
 
-    $: transcriptionId == "temp" && false
-
-    $: transcriptionId != "" && 
+    $: transcriptionId != "" && transcriptionId != "temp" &&
         getTranscription(transcriptionId).then(() => {
             scrollToBottom()
         })
