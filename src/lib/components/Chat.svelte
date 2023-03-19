@@ -205,8 +205,8 @@
 	}
 
 	function handleInput(e: any){
-		console.log(e)
 		if(e.key == "Enter" && !e.shiftKey){
+			e.preventDefault()
 			handleSubmit()
 		}
 	}
