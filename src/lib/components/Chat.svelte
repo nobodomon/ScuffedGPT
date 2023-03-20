@@ -269,35 +269,34 @@
 <div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
             
-		<div class="flex-1 gap-4">
-			<div class="form-control grow shadow-inner">
-				<div class="input-group">
-				  <input 
-					type="text" 
-					placeholder="Unnamed thread" 
-					class="input w-full text-base-content"
-					bind:value={threadname}
-					/>
-				  <button class="btn btn-secondary" on:click={async ()=>{
-					await updateDb()
-				  }}>
-				  <div class="w-5">
-					<MdSave />
-				</div>	
-				  </button>
-				</div>
+		
+		<div class="form-control grow shadow-inner">
+			<div class="input-group">
+			  <input 
+				type="text" 
+				placeholder="Unnamed thread" 
+				class="input w-full text-base-content"
+				bind:value={threadname}
+				/>
+			  <button class="btn btn-secondary" on:click={async ()=>{
+				await updateDb()
+			  }}>
+			  <div class="w-5">
+				<MdSave />
+			</div>	
+			  </button>
 			</div>
-			
-			<label class="swap">
-				<input type="checkbox" />
-				<div class="btn btn-accent break-keep swap-off">
-					{getTotalTokens(chatMessages)} tokens
-				</div>
-				<div class="btn btn-accent break-keep swap-on">
-					${(getTotalTokens(chatMessages)/1000 * 0.002).toFixed(4)}
-				</div>
-			</label>
 		</div>
+		
+		<label class="swap">
+			<input type="checkbox" />
+			<div class="btn btn-accent break-keep swap-off">
+				{getTotalTokens(chatMessages)} tokens
+			</div>
+			<div class="btn btn-accent break-keep swap-on">
+				${(getTotalTokens(chatMessages)/1000 * 0.002).toFixed(4)}
+			</div>
+		</label>
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<label tabindex="0" class="btn m-1">
 				<div class="w-5">
@@ -311,7 +310,7 @@
 				{/each}
 				</ul>
 			{/if}
-		  </div>
+		</div>
 	</div>
 	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow">
 		<div class="flex flex-col">
