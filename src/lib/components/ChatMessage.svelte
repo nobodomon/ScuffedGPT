@@ -2,13 +2,18 @@
 	import { getTokens } from '$lib/tokenizer'
 	import type { Auth} from 'firebase/auth'
 	import type { ChatCompletionRequestMessageRoleEnum } from 'openai'
-	import { each } from 'svelte/internal'
+	import { createEventDispatcher, each } from 'svelte/internal'
 	import CodeBlock from './CodeBlock.svelte';
+	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
+	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
 	export let type: ChatCompletionRequestMessageRoleEnum
 	export let message: string
 	export let loading = false
 	export let user: any
+	export let index : number
+	export let bookmarked : boolean
 
+	const dispatch = createEventDispatcher();
 
 	function formatText(message: string) {
 		let formattedText = ""; // initialize the formatted text string
@@ -33,6 +38,13 @@
 
 		return parts;
 	}
+
+	function bookmarkMessage() {
+		dispatch("bookmark", {
+			index : index,
+		})
+	}
+
 </script>
 
 <div class={"flex gap-4 justify-center p-4 " + (type === "user" ? "bg-base-200": "bg-base-300")}>
@@ -69,8 +81,21 @@
 				<progress class="progress progress-primary w-full"></progress>
 			{/if}
 		</div>
-		<div class="self-end btn btn-ghost btn-xs">
-			{(type == "user" ? "Prompt ":"Completion ")  + getTokens(message) + " tokens"}
+		<div class="self-end items-center flex">
+			<button class="btn btn-ghost btn-xs" on:click={bookmarkMessage}>
+				{#if bookmarked}
+					<MdBookmark />
+				{:else}
+					<MdBookmarkBorder />
+				{/if}
+			</button>
+			<div class="btn btn-ghost btn-xs">
+				{(type == "user" ? "Prompt ":"Completion ")  + getTokens(message) + " tokens"}
+			</div>
 		</div>
+		{#if bookmarked}
+			<div id={"bookmark-"+ index}>
+			</div>
+		{/if}
 	</div>
 </div>

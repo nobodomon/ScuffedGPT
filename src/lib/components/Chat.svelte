@@ -1,5 +1,8 @@
 <script lang="ts">
 	import ChatMessage from '$lib/components/ChatMessage.svelte'
+	import BookmarkModal from '$lib/components/BookmarkModal.svelte'
+	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
+	import MdSave from 'svelte-icons/md/MdSave.svelte'
 	import type { ChatCompletionRequestMessage  } from 'openai'
 	import { SSE } from 'sse.js'
 
@@ -17,6 +20,7 @@
     export let threadID = ""
 	let threadname = ""
 	let chatMessages: ChatCompletionRequestMessage[] = []
+	let bookmarks: any[] = []
 	let loading: boolean = false
 
 	let fetching: boolean = false
@@ -24,12 +28,14 @@
 	let chatQuery: string = ''
 
 	let showTextRecognition: boolean = false
+	let showBookmarkModal: boolean = false
 	let answer: string = ''
     let firestore = getFirestore()
     let auth = getAuth()
 	let scrollToDiv: HTMLDivElement
 
 	let image: File
+	let index: number = -1
 	
 	$: threadID != "" && 
 		getThread(threadID).then(() => {
@@ -123,7 +129,8 @@
             await setDoc(doc(firestore, "Threads", threadID), {
                 name: threadname,
                 messages: chatMessages,
-                users: auth.currentUser!!.uid
+                users: auth.currentUser!!.uid,
+				bookmarks: bookmarks
             })
 
 			dispatch("updatedoc", {
@@ -133,7 +140,8 @@
             await addDoc(threadsCollection, {
                 name: threadname,
                 messages: chatMessages,
-                users: auth.currentUser!!.uid
+                users: auth.currentUser!!.uid,
+				bookmarks: bookmarks
             }).then((docRef) => {
                 threadID = docRef.id
 
@@ -150,6 +158,7 @@
 			if (doc.exists()) {
 				threadname = doc.data()!!.name
 				chatMessages = doc.data()!!.messages
+				bookmarks = doc.data()!!.bookmarks ? doc.data()!!.bookmarks.sort((a:any,b: any)=> a.index > b.index) : []
 				fetching = false
 			}
 		}).catch((error) => {
@@ -217,35 +226,90 @@
 		}
 	}
 
+	async function updateBookmark(e: any){
+		if(bookmarks.find((item) => item.index == e.detail.index)){
+			bookmarks = bookmarks.filter((item) => item.index != e.detail.index)
+			await updateDb()
+		}else{
+			showBookmarkModal = true
+			index = e.detail.index
+		}
+	}
+
+	async function saveBookmark(e: any){
+
+		bookmarks.push({
+			index: e.detail.index,
+			name: e.detail.name
+		})
+		bookmarks = bookmarks
+
+		await updateDb()
+		showBookmarkModal = false
+	}
+
+	function closeBookmarkModal(){
+		showBookmarkModal = false
+		index = -1
+	}
+
+
+	const scrollToBookmark = (index: number) => {
+		const element = document.getElementById(`bookmark-${index}`)
+		if(element){
+			element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+		}
+	}
+
+	function sortBookmarks(bookmarks: any){
+		return bookmarks.sort((a: any, b: any) => a.index > b.index)
+	}
+
 </script>
 <div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
             
-		<div class="form-control grow shadow-inner">
-			<div class="input-group">
-			  <input 
-				type="text" 
-				placeholder="Unnamed thread" 
-				class="input w-full text-base-content"
-				bind:value={threadname}
-				/>
-			  <button class="btn btn-secondary" on:click={async ()=>{
-				await updateDb()
-			  }}>
-				Submit
-			  </button>
+		<div class="flex-1 gap-4">
+			<div class="form-control grow shadow-inner">
+				<div class="input-group">
+				  <input 
+					type="text" 
+					placeholder="Unnamed thread" 
+					class="input w-full text-base-content"
+					bind:value={threadname}
+					/>
+				  <button class="btn btn-secondary" on:click={async ()=>{
+					await updateDb()
+				  }}>
+				  <div class="w-5">
+					<MdSave />
+				</div>	
+				  </button>
+				</div>
 			</div>
+			
+			<label class="swap">
+				<input type="checkbox" />
+				<div class="btn btn-accent break-keep swap-off">
+					{getTotalTokens(chatMessages)} tokens
+				</div>
+				<div class="btn btn-accent break-keep swap-on">
+					${(getTotalTokens(chatMessages)/1000 * 0.002).toFixed(4)}
+				</div>
+			</label>
 		</div>
-		
-		<label class="swap">
-			<input type="checkbox" />
-			<div class="btn btn-accent break-keep swap-off">
-				{getTotalTokens(chatMessages)} tokens
-			</div>
-			<div class="btn btn-accent break-keep swap-on">
-				${(getTotalTokens(chatMessages)/1000 * 0.002).toFixed(4)}
-			</div>
-		</label>
+		<div class="dropdown dropdown-bottom dropdown-end">
+			<label tabindex="0" class="btn m-1">
+				<div class="w-5">
+					<MdBookmark />
+				</div>
+			</label>
+			<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+				{#each sortBookmarks(bookmarks) as bookmark}
+				<li class="w-full" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
+			{/each}
+			</ul>
+		  </div>
 	</div>
 	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow">
 		<div class="flex flex-col">
@@ -253,11 +317,14 @@
 		{#if fetching}
 			<progress class="progress progress-primary w-full place-items-center"></progress>
 		{:else}
-			{#each chatMessages as message}
+			{#each chatMessages as message, index}
 				<ChatMessage 
 				type={message.role} 
 				message={message.content} 
 				user= {auth.currentUser}
+				index = {index}
+				bookmarked = {bookmarks.find((item) => item.index == index) ? true : false}
+				on:bookmark={updateBookmark}
 				/>
 			{/each}
 			{#if answer != ""}
@@ -266,6 +333,8 @@
 				message={answer} 
 				loading={loading} 
 				user= {auth.currentUser}
+				index = {-1}
+				bookmarked = {false}
 				/>
 			{/if}
 		{/if}
@@ -289,4 +358,7 @@
 	<TextRecognition showModal={showTextRecognition} image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt}>
 
 	</TextRecognition>
+
+	<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}>
+	</BookmarkModal>
 </div>
