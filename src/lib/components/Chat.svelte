@@ -304,11 +304,13 @@
 					<MdBookmark />
 				</div>
 			</label>
+			{#if bookmarks.length > 0}
 			<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
 				{#each sortBookmarks(bookmarks) as bookmark}
-				<li class="w-full" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
-			{/each}
-			</ul>
+					<li class="w-full" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
+				{/each}
+				</ul>
+			{/if}
 		  </div>
 	</div>
 	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow">
