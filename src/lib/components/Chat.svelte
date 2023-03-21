@@ -2,11 +2,12 @@
 	import ChatMessage from '$lib/components/ChatMessage.svelte'
 	import BookmarkModal from '$lib/components/BookmarkModal.svelte'
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
+	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
 	import MdSave from 'svelte-icons/md/MdSave.svelte'
 	import type { ChatCompletionRequestMessage  } from 'openai'
 	import { SSE } from 'sse.js'
 
-    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp } from 'firebase/firestore'
+    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {threadsCollection} from "../../firebase"
@@ -131,6 +132,8 @@
                 messages: chatMessages,
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
+				createdOn: serverTimestamp(),
+				updatedOn: serverTimestamp()
             })
 
 			dispatch("updatedoc", {
@@ -142,6 +145,7 @@
                 messages: chatMessages,
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
+				updatedOn: serverTimestamp()
             }).then((docRef) => {
                 threadID = docRef.id
 
@@ -300,7 +304,11 @@
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<label tabindex="0" class="btn m-1">
 				<div class="w-5">
-					<MdBookmark />
+					{#if bookmarks.length > 0}
+						<MdBookmark />
+					{:else}
+						<MdBookmarkBorder />
+					{/if}
 				</div>
 			</label>
 			{#if bookmarks.length > 0}
