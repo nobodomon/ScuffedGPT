@@ -8,7 +8,7 @@
 	import Chat from '$lib/components/Chat.svelte'
 	import type { ChatCompletionRequestMessage } from 'openai'
 
-	import {getFirestore, onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where, increment, updateDoc} from "firebase/firestore";
+	import {getFirestore, onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where, increment, updateDoc, orderBy} from "firebase/firestore";
 	import Transcriptions from '$lib/components/Transcriptions.svelte'
 	import { onMount } from 'svelte'
 	import { themeChange } from 'theme-change'
@@ -98,7 +98,7 @@
 	
     async function loadThreads () {
         let threads : any[] = [];
-        const q = query(threadsCollection, where("users", "==", uid));
+        const q = query(threadsCollection, where("users", "==", uid), orderBy("updatedOn", "desc"));
         const snapshot = await getDocs(q);
 
         snapshot.forEach((doc) => {
