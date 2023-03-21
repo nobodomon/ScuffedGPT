@@ -131,7 +131,6 @@
                 messages: chatMessages,
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
-				updatedOn: new Timestamp(new Date().getTime(), 0)
             })
 
 			dispatch("updatedoc", {
@@ -143,7 +142,6 @@
                 messages: chatMessages,
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
-				createdOn: new Timestamp(new Date().getTime(), 0)
             }).then((docRef) => {
                 threadID = docRef.id
 
