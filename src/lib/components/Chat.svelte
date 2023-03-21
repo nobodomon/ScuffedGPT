@@ -6,7 +6,7 @@
 	import type { ChatCompletionRequestMessage  } from 'openai'
 	import { SSE } from 'sse.js'
 
-    import { getFirestore, addDoc, setDoc, doc, getDoc } from 'firebase/firestore'
+    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {threadsCollection} from "../../firebase"
@@ -130,7 +130,8 @@
                 name: threadname,
                 messages: chatMessages,
                 users: auth.currentUser!!.uid,
-				bookmarks: bookmarks
+				bookmarks: bookmarks,
+				updatedOn: new Timestamp(new Date().getTime(), 0)
             })
 
 			dispatch("updatedoc", {
@@ -141,7 +142,8 @@
                 name: threadname,
                 messages: chatMessages,
                 users: auth.currentUser!!.uid,
-				bookmarks: bookmarks
+				bookmarks: bookmarks,
+				createdOn: new Timestamp(new Date().getTime(), 0)
             }).then((docRef) => {
                 threadID = docRef.id
 
