@@ -3,6 +3,7 @@
 	import BookmarkModal from '$lib/components/BookmarkModal.svelte'
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
 	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
+	import MdStop from 'svelte-icons/md/MdStop.svelte'
 	import MdSave from 'svelte-icons/md/MdSave.svelte'
 	import type { ChatCompletionRequestMessage  } from 'openai'
 	import { SSE } from 'sse.js'
@@ -23,6 +24,7 @@
 	let chatMessages: ChatCompletionRequestMessage[] = []
 	let bookmarks: any[] = []
 	let loading: boolean = false
+	let inProgress: boolean = false
 
 	let fetching: boolean = false
 
@@ -61,6 +63,7 @@
 		if(chatQuery.trim() === "") return
 
 		loading = true
+		inProgress = true
 
 
 		chatMessages = [...chatMessages, { role: 'user', content: chatQuery }]
@@ -87,6 +90,7 @@
 			try {
 				loading = false
 				if (e.data === '[DONE]') {
+					inProgress = false
 					console.log(e);
 					chatMessages = [...chatMessages, { role: 'assistant', content: answer }]
 
@@ -111,6 +115,7 @@
 					answer = (answer ?? '') + delta.content
 				}
 			} catch (err) {
+				inProgress = false
 				handleError(err)
 			}
 		})
@@ -204,6 +209,8 @@
 			}
 		}
 	}
+
+
 
 	async function read (file: any) {
         return new Promise<any>((resolve, reject) => {
@@ -320,8 +327,8 @@
 			{/if}
 		</div>
 	</div>
-	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow">
-		<div class="flex flex-col">
+	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow ">
+		<div class="flex flex-col relative">
 			
 		{#if fetching}
 			<progress class="progress progress-primary w-full place-items-center"></progress>
@@ -349,15 +356,15 @@
 		{/if}
 		</div>
 		<div class="" bind:this={scrollToDiv} />
+
 	</div>
 	<form
 		class="flex w-full items-stretch rounded-md gap-4 bg-base-300 p-4"
 		on:submit|preventDefault={() => handleSubmit()}
 	>
 		<textarea class="textarea textarea-xs max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={chatQuery} />
-		{#if loading}
-			<button type="submit" class="btn btn-primary" disabled>
-				Loading...
+		{#if inProgress}
+			<button type="submit" class="btn btn-primary btn-square loading" disabled>
 			</button>
 		{:else}
 			<button type="submit" class="btn btn-primary">Send</button>
