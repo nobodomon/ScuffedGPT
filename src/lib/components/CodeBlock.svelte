@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Highlight, HighlightAuto, LineNumbers } from "svelte-highlight";
 
-    import "svelte-highlight/styles/tokyo-night-dark.css"
+    import "svelte-highlight/styles/horizon-dark.css"
     import MdContentCopy from 'svelte-icons/md/MdContentCopy.svelte'
 
     export let code : String;
@@ -26,7 +26,7 @@
 
 <div class="mockup-code my-4 sm:max-w-full max-w-sm">
     <div class="w-full flex justify-between p-4 border-b border-base-100 border-b-2">
-        <span class="font-bold capitalize">{language}</span>
+        <span class="font-bold capitalize italic">{language}</span>
         <button class="btn btn-ghost btn-sm flex gap-4" on:click={handleCopyCode}>
             <div class="w-5">
             <MdContentCopy />
