@@ -23,6 +23,7 @@
 		for (let i = 0; i < parts.length; i++) {
 		if (i % 2 === 0) {
 			// if this is not a code block, format the list
+			parts[i] = parts[i].trim().replace(/`(.+?)`/g,"<b>$1</b>")
 			parts[i] = parts[i].trim().split("\n").map((item: any) => `<li>${item}&nbsp;</li>`).join("");
 			parts[i] = `<ul>${parts[i]}</ul>`;
 		} else {
@@ -73,6 +74,9 @@
 	
 	<div class="w-full flex flex-col text-base-content md:max-w-screen-lg max-w-full gap-4 overflow-x-hidden">
 		<div class="w-full text-base-content flex-col items-center">
+			{#if type === "user"}
+			{message}
+			{:else}
 			{#each formatText(message) as block}
 				{#if typeof block === 'string'}
 					{@html block}
@@ -80,10 +84,11 @@
 					<CodeBlock code={block.code} />
 				{/if}
 			{/each}
-
+			{/if}
 			{#if loading}
 				<progress class="progress progress-primary w-full"></progress>
 			{/if}
+			
 		</div>
 		<div class="self-end items-center flex">
 			<button class="btn btn-ghost btn-xs" on:click={bookmarkMessage}>

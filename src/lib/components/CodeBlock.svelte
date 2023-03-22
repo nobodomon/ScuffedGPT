@@ -15,9 +15,6 @@
     // split code into list of lines
     let language = code.split('\n')[0]
     let codePart = code.split('\n').splice(1).join('\n');
-    console.log(code);
-    console.log(codePart);
-    console.log(language);
 
     function handleCopyCode() {
         navigator.clipboard.writeText(codePart);
