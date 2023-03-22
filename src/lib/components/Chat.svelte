@@ -47,7 +47,8 @@
 
 	$: threadID == "" && (
 		chatMessages = [],
-		threadname = ""
+		threadname = "",
+		bookmarks = []
 	)
 	
 
