@@ -90,8 +90,8 @@
 			{/if}
 			
 		</div>
-		<div class="self-end items-center flex">
-			<button class="btn btn-ghost btn-xs" on:click={bookmarkMessage}>
+		<div class="self-end items-center flex gap-4">
+			<button class="btn btn-ghost btn-xs btn-square" on:click={bookmarkMessage}>
 				{#if bookmarked}
 					<MdBookmark />
 				{:else}
