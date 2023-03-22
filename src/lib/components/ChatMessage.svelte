@@ -48,6 +48,10 @@
 </script>
 
 <div class={"flex gap-4 justify-center p-4 " + (type === "user" ? "bg-base-200": "bg-base-300")}>
+	{#if bookmarked}
+		<div id={"bookmark-"+ index}>
+		</div>
+	{/if}
 	<div class="chat-image avatar self-start">
 		<div class="w-8 rounded-full">
 			<!-- <img
@@ -67,8 +71,8 @@
 		</div>
 	</div>
 	
-	<div class="w-full flex flex-col text-base-content max-w-[1000px] gap-4">
-		<div class="w-full text-base-content">
+	<div class="w-full flex flex-col text-base-content md:max-w-screen-lg max-w-full gap-4 overflow-x-hidden">
+		<div class="w-full text-base-content flex-col items-center">
 			{#each formatText(message) as block}
 				{#if typeof block === 'string'}
 					{@html block}
@@ -93,9 +97,5 @@
 				{(type == "user" ? "Prompt ":"Completion ")  + getTokens(message) + " tokens"}
 			</div>
 		</div>
-		{#if bookmarked}
-			<div id={"bookmark-"+ index}>
-			</div>
-		{/if}
 	</div>
 </div>

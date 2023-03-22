@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { HighlightAuto, LineNumbers } from "svelte-highlight";
+    import { Highlight, HighlightAuto, LineNumbers } from "svelte-highlight";
 
-    import github from "svelte-highlight/styles/github-dark.css"
+    import "svelte-highlight/styles/tokyo-night-dark.css"
+    import MdContentCopy from 'svelte-icons/md/MdContentCopy.svelte'
 
     export let code : String;
 
@@ -12,14 +13,28 @@
     }else{
     }
     // split code into list of lines
+    let language = code.split('\n')[0]
+    let codePart = code.split('\n').splice(1).join('\n');
+    console.log(code);
+    console.log(codePart);
+    console.log(language);
+
+    function handleCopyCode() {
+        navigator.clipboard.writeText(codePart);
+    }
 </script>
 
-<svelte:head>
-    {@html github}
-</svelte:head>
-
-<div class="mockup-code my-4 sm:max-w-full max-w-sm">
-    <HighlightAuto code={code} let:highlighted>
+<div class="mockup-code m-4 sm:max-w-full max-w-sm">
+    <div class="w-full flex justify-between p-4 border-b border-base-100 border-b-2">
+        <span class="font-bold capitalize">{language}</span>
+        <button class="btn btn-ghost btn-sm flex gap-4" on:click={handleCopyCode}>
+            <div class="w-5">
+            <MdContentCopy />
+            </div>
+            Copy
+        </button>
+    </div>
+    <HighlightAuto code={codePart} let:highlighted>
         <LineNumbers {highlighted} />
     </HighlightAuto>
 </div>

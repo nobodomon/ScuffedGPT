@@ -267,9 +267,13 @@
 
 
 	const scrollToBookmark = (index: number) => {
+		
+		
 		const element = document.getElementById(`bookmark-${index}`)
 		if(element){
-			element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+			setTimeout(function () {
+				element.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' })
+			}, 100)
 		}
 	}
 
@@ -363,7 +367,7 @@
 		class="flex w-full items-stretch rounded-md gap-4 bg-base-300 p-4"
 		on:submit|preventDefault={() => handleSubmit()}
 	>
-		<textarea class="textarea textarea-xs max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={chatQuery} />
+		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={chatQuery} />
 		{#if inProgress}
 			<button type="submit" class="btn btn-primary btn-square loading" disabled>
 			</button>
