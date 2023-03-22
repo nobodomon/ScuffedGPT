@@ -39,7 +39,7 @@
 
 			onSnapshot(userTokens, (doc) => {
 				if(doc.exists()){
-					usedTokens = doc.data().tokensUsed
+					usedTokens = doc.data().tokensUsed? doc.data().tokensUsed : 0
 					totalDuration = doc.data().transcriptionTime? doc.data().transcriptionTime : 0
 				}
 			});
