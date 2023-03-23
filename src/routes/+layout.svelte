@@ -60,7 +60,7 @@
 			const auth = getAuth()
 			await auth.signOut()
 		} catch (error) {
-			console.log(error)
+			//console.log(error)
 		}
 	}
 
@@ -113,7 +113,7 @@
 
 	async function loadTranscriptions () {
 		let transcriptions : any[] = [];
-		console.log("Loading transcriptions for user: " + uid)
+		//("Loading transcriptions for user: " + uid)
 		const q = query(transcriptionsCollection, where("user", "==", uid));
 		const snapshot = await getDocs(q);
 

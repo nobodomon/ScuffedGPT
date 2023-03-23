@@ -5,25 +5,26 @@
     import MdContentCopy from 'svelte-icons/md/MdContentCopy.svelte'
 
     export let code : String;
-
-    let multiline = code.includes('\n');
-    let lines : String[] = [];
-    if(multiline) {
-        lines = code.split('\n');
-    }else{
-    }
     // split code into list of lines
-    let language = code.split('\n')[0]
-    let codePart = code.split('\n').splice(1).join('\n');
 
     function handleCopyCode() {
-        navigator.clipboard.writeText(codePart);
+        navigator.clipboard.writeText(getCodePart());
+    }
+
+    const getLanguage = () =>{
+        let tempCode = code.trim().split('\n');
+        let language = tempCode[0];
+        return language;
+    }
+
+    const getCodePart = () =>{
+        return code.trim()
     }
 </script>
 
 <div class="mockup-code my-4 sm:max-w-full max-w-sm">
     <div class="w-full flex justify-between p-4 border-b border-base-100 border-b-2">
-        <!-- <span class="font-bold capitalize italic">{language}</span> -->
+        <span class="font-bold capitalize italic">{getLanguage()}</span>
         <button class="btn btn-ghost btn-sm flex gap-4" on:click={handleCopyCode}>
             <div class="w-5">
             <MdContentCopy />
@@ -31,7 +32,7 @@
             Copy
         </button>
     </div>
-    <HighlightAuto code={code} let:highlighted>
+    <HighlightAuto code={code.trim()} let:highlighted>
         <LineNumbers {highlighted} />
     </HighlightAuto>
 </div>

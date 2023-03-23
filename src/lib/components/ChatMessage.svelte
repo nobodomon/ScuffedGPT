@@ -2,7 +2,7 @@
 	import { getTokens } from '$lib/tokenizer'
 	import type { Auth} from 'firebase/auth'
 	import type { ChatCompletionRequestMessageRoleEnum } from 'openai'
-	import { createEventDispatcher, each } from 'svelte/internal'
+	import { createEventDispatcher, each, escape } from 'svelte/internal'
 	import CodeBlock from './CodeBlock.svelte';
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
 	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
@@ -18,13 +18,17 @@
 	function formatText(message: string) {
 		let formattedText = ""; // initialize the formatted text string
 		let parts: any[] = []; // initialize the parts array
-		parts = message.split("```"); // split the text by the code block delimiter
-
+		parts = message.split(/```/g); // split the text by the code block delimiter
 		for (let i = 0; i < parts.length; i++) {
 		if (i % 2 === 0) {
 			// if this is not a code block, format the list
-			parts[i] = parts[i].trim().replace(/`(.+?)`/g,"<b>$1</b>")
+
 			parts[i] = parts[i].trim().split("\n").map((item: any) => `<li>${item}&nbsp;</li>`).join("");
+
+			// find if parts has any text that starts and end with `  and replace with <b>
+			
+			parts[i] = parts[i].replace(/`([^`]+)`/g, "<b>$1</b>");
+
 			parts[i] = `<ul>${parts[i]}</ul>`;
 		} else {
 			// if this is a code block, surround it with <code> tags

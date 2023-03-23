@@ -17,7 +17,7 @@
         const { data: { text } } = await Tesseract.recognize(image, 'eng', { logger: m => 
             progress=m.progress
         });
-        console.log(text);
+        //console.log(text);
         output = text;
         loading = false;
         return text;
@@ -39,7 +39,6 @@
 
     function splitText(text: string) {
         const splitText = text.split('\n').filter((line) => line.length > 0);
-        console.log(splitText);
         return splitText;
     }
 

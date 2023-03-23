@@ -33,7 +33,6 @@
     }
 
     function deleteAllThreads() {
-        console.log("Deleting all threads");
         dispatch("deleteAllThreads", {
         });
     }

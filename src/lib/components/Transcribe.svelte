@@ -95,7 +95,7 @@
             processing = i+1
             const formData = new FormData();
 
-            console.log(files.accepted[i])
+            //console.log(files.accepted[i])
 
             formData.append('file', files.accepted[i])
             formData.append('language', language)
@@ -135,7 +135,7 @@
                 user: auth.currentUser?.uid,
                 name: transcriptionName
             }).then(() => {
-                console.log("Document successfully written!");
+                //console.log("Document successfully written!");
                 dispatch("transcriptionUpdate",{
                     id: transcriptionId
                 })
@@ -151,7 +151,7 @@
                 name: transcriptionName,
                 durations: durations
             }).then((docRef) => {
-                console.log("Document written with ID: ", docRef.id);
+                //console.log("Document written with ID: ", docRef.id);
                 transcriptionId = docRef.id
                 dispatch("transcriptionNew",{
                     id: docRef.id
@@ -185,7 +185,7 @@
                 fetching = false
             }
         }).catch((error) => {
-            console.log("Error getting document:", error);
+            //console.log("Error getting document:", error);
         });
     }
 
