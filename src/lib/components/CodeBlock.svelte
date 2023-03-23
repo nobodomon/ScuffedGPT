@@ -23,7 +23,7 @@
 
 <div class="mockup-code my-4 sm:max-w-full max-w-sm">
     <div class="w-full flex justify-between p-4 border-b border-base-100 border-b-2">
-        <span class="font-bold capitalize italic">{language}</span>
+        <!-- <span class="font-bold capitalize italic">{language}</span> -->
         <button class="btn btn-ghost btn-sm flex gap-4" on:click={handleCopyCode}>
             <div class="w-5">
             <MdContentCopy />
@@ -31,7 +31,7 @@
             Copy
         </button>
     </div>
-    <HighlightAuto code={codePart} let:highlighted>
+    <HighlightAuto code={code} let:highlighted>
         <LineNumbers {highlighted} />
     </HighlightAuto>
 </div>
