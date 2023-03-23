@@ -8,7 +8,7 @@
 	import type { ChatCompletionRequestMessage  } from 'openai'
 	import { SSE } from 'sse.js'
 
-    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp } from 'firebase/firestore'
+    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp, query } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {threadsCollection} from "../../firebase"
@@ -336,7 +336,13 @@
 		<div class="flex flex-col relative">
 			
 		{#if fetching}
-			<progress class="progress progress-primary w-full place-items-center"></progress>
+		<div class="toast toast-center toast-middle">
+			<div class="alert">
+				<div>
+					<button class="btn btn-square loading"></button>
+				</div>
+			</div>
+		</div>
 		{:else}
 			{#each chatMessages as message, index}
 				<ChatMessage 
@@ -371,6 +377,8 @@
 		{#if inProgress}
 			<button type="submit" class="btn btn-primary btn-square loading" disabled>
 			</button>
+		{:else if chatQuery == ""}
+			<button type="submit" class="btn btn-primary" disabled>Send</button>
 		{:else}
 			<button type="submit" class="btn btn-primary">Send</button>
 		{/if}

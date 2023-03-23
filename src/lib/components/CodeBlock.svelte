@@ -26,7 +26,7 @@
     }
 </script>
 
-<div class="mockup-code my-4 sm:max-w-full max-w-sm">
+<div class="mockup-code my-4 self-stretch">
     <div class="w-full flex justify-between p-4 border-b border-base-100 border-b-2">
         <span class="font-bold capitalize italic">{getLanguage()}</span>
         <button class="btn btn-ghost btn-sm flex gap-4" on:click={handleCopyCode}>

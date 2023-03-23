@@ -52,13 +52,13 @@
 
 </script>
 
-<div class={"flex gap-4 justify-center p-4 " + (type === "user" ? "bg-base-200": "bg-base-300")}>
+<div class={"flex self-stretch gap-4 justify-center p-4 " + (type === "user" ? "bg-base-200": "bg-base-300")}>
 	{#if bookmarked}
 		<div id={"bookmark-"+ index}>
 		</div>
 	{/if}
 	<div class="chat-image avatar self-start">
-		<div class="w-8 rounded-full">
+		<div class="sm:w-8 w-0 rounded-full">
 			<!-- <img
 				src="https://ui-avatars.com/api/?name={type === 'user' ? 'Me' : 'S'}"
 				alt="{type} avatar"
