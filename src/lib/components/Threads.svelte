@@ -33,13 +33,14 @@
     }
 
     function deleteAllThreads() {
+        //console.log("Deleting all threads");
         dispatch("deleteAllThreads", {
         });
     }
 
     function switchThread(threadId : any) {
         currThreadID = threadId;
-        console.log("Switching to thread: " + threadId);
+        //console.log("Switching to thread: " + threadId);
         dispatch("threadswitch", {
             id: threadId,
         });

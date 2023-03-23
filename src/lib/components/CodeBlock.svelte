@@ -7,18 +7,22 @@
     export let code : String;
     // split code into list of lines
 
+    console.log(code);
+
     function handleCopyCode() {
         navigator.clipboard.writeText(getCodePart());
     }
 
     const getLanguage = () =>{
-        let tempCode = code.trim().split('\n');
-        let language = tempCode[0];
-        return language;
+        if(code.startsWith(" ")){
+            return "";
+        }else{
+            return code.split('\n')[0];
+        }
     }
 
     const getCodePart = () =>{
-        return code.trim()
+        return code.slice(getLanguage().length).trim();
     }
 </script>
 
@@ -32,7 +36,7 @@
             Copy
         </button>
     </div>
-    <HighlightAuto code={code.trim()} let:highlighted>
+    <HighlightAuto code={code.slice(getLanguage().length).trim()} let:highlighted>
         <LineNumbers {highlighted} />
     </HighlightAuto>
 </div>

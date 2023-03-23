@@ -62,7 +62,7 @@
 
 	const handleSubmit = async () => {
 		if(chatQuery.trim() === "") return
-
+		if(inProgress) return
 		loading = true
 		inProgress = true
 

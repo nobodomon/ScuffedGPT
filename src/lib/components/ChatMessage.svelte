@@ -18,7 +18,7 @@
 	function formatText(message: string) {
 		let formattedText = ""; // initialize the formatted text string
 		let parts: any[] = []; // initialize the parts array
-		parts = message.split(/```/g); // split the text by the code block delimiter
+		parts = message.split(/\n```/g); // split the text by the code block delimiter
 		for (let i = 0; i < parts.length; i++) {
 		if (i % 2 === 0) {
 			// if this is not a code block, format the list
