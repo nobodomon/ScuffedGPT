@@ -318,7 +318,7 @@
 			</div>
 		</label>
 		<div class="dropdown dropdown-bottom dropdown-end">
-			<label tabindex="0" class="btn m-1">
+			<label tabindex="0" class="btn btn-square">
 				<div class="w-5">
 					{#if bookmarks.length > 0}
 						<MdBookmark />
@@ -328,7 +328,7 @@
 				</div>
 			</label>
 			{#if bookmarks.length > 0}
-			<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+			<ul tabindex="0" class="dropdown-content menu p-2 mt-2 shadow bg-base-100 rounded-box w-52">
 				{#each sortBookmarks(bookmarks) as bookmark}
 					<li class="w-full text-base-content" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
 				{/each}
@@ -352,7 +352,7 @@
 			<div class="p-4">
 				<div class="form-control">
 					<div class="input-group">
-						<input type="text" bind:value={systemMessage} class="input w-full" placeholder="Provide a system message"/>
+						<input type="text" bind:value={systemMessage} class="input w-full" placeholder="Provide a system message... (optional)"/>
 						<div class="tooltip tooltip-bottom before:-left-[235%]" data-tip="Provide a system message to get more related results.">
 							<button class="btn btn-square rounded-l-none">
 								<div class="w-5">
