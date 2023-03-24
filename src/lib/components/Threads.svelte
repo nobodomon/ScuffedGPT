@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
-    import ReactiveButton from "$lib/components/ReactiveButton.svelte";
+    import {navigate} from "svelte-navigator";
     import {threadsCollection,auth} from "../../firebase";
     import {getAuth} from "firebase/auth";
 
@@ -55,7 +55,9 @@
 
     async function deleteThread(threadId : any) {
         await deleteDoc(doc(threadsCollection, threadId));
-        redirect(303,"/chat");
+        navigate("/chat", {
+            replace: true,
+        });
     }
     
     function onDeleteAll(){
@@ -103,7 +105,9 @@
         <div class="divider"></div>
             {#each threads as thread}
                 <div class="w-full bordered flex items-center gap-1">
-                    <ReactiveButton id={thread.id} label={thread.name  == "" ? "Unnamed Thread" : transform(thread.name)} />
+                    <a class={"btn grow overflow-hidden bg-base-neutral"} href="{`/chat/${thread.id}`}">
+                        {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
+                    </a>
                     <button class="btn btn-ghost btn-square text-base-content" on:click|preventDefault={()=> deleteThread(thread.id)}>
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x stroke-base-content" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>

@@ -54,7 +54,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		const prompt = systemMessage || 'You are a virtual assistant to replace ChatGPT when it is down. Your name is ScuffedGPT.'
-		console.log(prompt);
 		tokenCount += getTokens(prompt)
 
 		if (tokenCount >= 4000) {

@@ -1,10 +1,12 @@
 <script lang="ts">
     import type { PageData } from './$types';
     import Chat from '$lib/components/Chat.svelte';
-    export let data: PageData;
 
-
-    console.log(data);
+    export function load(){
+        return {
+            preserve: false
+        }
+    }
 </script>
 
-<Chat></Chat>
+<Chat threadID={""}></Chat>

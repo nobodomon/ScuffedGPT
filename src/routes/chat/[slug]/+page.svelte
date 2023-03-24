@@ -5,6 +5,13 @@
 
 
     $: threadId = data.thread;
+
+    export function load(){
+        return {
+            preserve: false
+        }
+    }
+    console.log(threadId ? threadId.threadId : "no thread id")
 </script>
 
 <Chat threadID={threadId.threadId}></Chat>

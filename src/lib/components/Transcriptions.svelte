@@ -12,8 +12,8 @@
     const dispatch = createEventDispatcher();
     
     export let transcriptions : any[] = [];
-    export let totalTranscribed : number;
-    export let currTranscriptionID : string;
+
+    
 
     onMount(async () => {
         const auth = getAuth();
@@ -97,7 +97,7 @@
         <div class="divider"></div>
         {#each transcriptions as transcription}
             <div class="w-full flex items-center gap-1">
-                <a class={"btn grow overflow-hidden " + (transcription.id === currTranscriptionID ? "btn-primary" : "btn-base-100")} href="{`/transcribe/${transcription.id}`}">
+                <a class={"btn grow overflow-hidden bg-base-neutral"} href="{`/transcribe/${transcription.id}`}">
                     {transcription.name  == "" ? transform(transcription.text?? "Unnamed Transcript") : transform(transcription.name)}
                 </a>
                 <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> deleteTranscription(transcription.id)}>

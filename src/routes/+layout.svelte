@@ -32,7 +32,6 @@
 			uid = user.uid
 			user = user
 			loggedIn = true
-			allTranscriptions = await loadTranscriptions()
 
 			const userTokens = doc(firestore, "Users", uid);
 
@@ -50,7 +49,6 @@
 			uid = ''
 			user = null
 			loggedIn = false
-			currID = ''
 		}
 	})
 
@@ -66,95 +64,6 @@
 	onMount(()=>{
 		themeChange(false);
 	})
-
-	let pageType = 'chat'
-	
-	async function onThreadUpdate(e: CustomEvent){
-		let tokensUsed = e.detail.tokensUsed
-		updateTokenUse(tokensUsed)
-	}
-
-	async function onTranscriptionUpdate(e: CustomEvent){
-		let duration = e.detail.duration
-		updateTranscriptionUse(duration)
-	}
-
-	async function updateTokenUse(tokensUsed: number){
-		const incr = increment(tokensUsed)
-		const userDoc = doc(firestore, "Users", uid);
-		await setDoc(userDoc, {
-			tokensUsed: incr
-		}, {merge: true});
-	}
-
-	async function updateTranscriptionUse(duration: number){
-		const incr = increment(duration)
-		const userDoc = doc(firestore, "Users", uid);
-		await setDoc(userDoc, {
-			transcriptionTime: incr
-		}, {merge: true});
-	}
-	
-
-	async function loadTranscriptions () {
-		let transcriptions : any[] = [];
-		//("Loading transcriptions for user: " + uid)
-		const q = query(transcriptionsCollection, where("user", "==", uid));
-		const snapshot = await getDocs(q);
-
-		snapshot.forEach((doc) => {
-			transcriptions.push({
-				id: doc.id,
-				name: doc.data().name,
-				text: doc.data().text,
-			});
-		});
-		return transcriptions;
-	}
-
-	let currID: string = ''
-	let threads: Threads
-
-	const handleThreadSwitch = async (e: any) => {
-		currID = e.detail.id
-		pageType = 'chat'
-	}
-
-	let transcriptions : Transcriptions
-
-	const handleTranscriptionSwitch = async (e: any) => {
-		currID = e.detail.transcriptionId
-		pageType = 'transcribe'
-	}
-
-	async function handleTranscriptionAdd(e: any) {
-		currID = e.detail.id
-		pageType = 'transcribe'
-		allTranscriptions = await loadTranscriptions()
-	}
-
-	async function handleTranscriptionDelete(e: any) {
-		currID = ''
-		pageType = 'transcribe'
-		allTranscriptions = await loadTranscriptions()
-	}
-	
-	async function handleNew(e:any){
-		currID = e.detail.id
-		pageType = e.detail.pageType
-	}
-
-	async function handleDeleteAll(e:any){
-		currID = ''
-		pageType = e.detail.pageType
-
-		if(pageType == 'chat'){
-			allThreads = []
-		}else{
-			allTranscriptions = []
-		}
-	}
-	
 </script>
 
 <svelte:head>
@@ -185,7 +94,7 @@
 				</label>
 			</div>
 			<div class="flex-1">
-				<span class="btn btn-ghost normal-case text-xl  text-base-content ">ScuffedGPT</span>
+				<a class="btn btn-ghost normal-case text-xl  text-base-content " href="/">ScuffedGPT</a>
 				
 			</div>
 			
@@ -207,23 +116,6 @@
 		</div>
 		{#if loggedIn}
 			<slot/>
-			<!-- {#if pageType == 'chat'}
-				<Chat
-					threadID={currID}
-					on:updatedoc={handleThreadAdd}
-					on:adddoc={handleThreadAdd}
-					on:chatUpdate={onThreadUpdate}
-					bind:this={chat}
-				/>
-			{:else if pageType == "transcribe"}
-				<Transcribe
-					on:transcriptionNew={handleTranscriptionAdd}
-					on:transcriptionUpdate={handleTranscriptionAdd}
-					on:newTranscription={onTranscriptionUpdate}
-					transcriptionId={currID}
-					bind:this={transcribe}
-				/>
-			{/if} -->
 		{:else}
 			<div class="h-full w-100 grow flex items-center place-self-center">
 				<LoginBlock />
@@ -258,20 +150,8 @@
 						</div>
 					</div>
 				  </div>
-				<Transcriptions
-					on:transcriptionSwitch={handleTranscriptionSwitch}
-					on:transcriptionNew={handleTranscriptionAdd}
-					on:transcriptionDelete={handleTranscriptionDelete}
-					on:onNewThread={handleNew}
-					on:deleteAll={handleDeleteAll}
-					totalTranscribed={totalDuration}
-					bind:this={transcriptions}
-					currTranscriptionID={currID}
-					transcriptions={allTranscriptions}
-				/>
+				<Transcriptions/>
 				<Threads
-				  	currId={currID}
-					bind:this={threads}
 				/>
 			{/if}
 		</ul>
