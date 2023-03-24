@@ -354,7 +354,7 @@
 				<div class="form-control">
 					<div class="input-group">
 						<input type="text" bind:value={systemMessage} class="input w-full" placeholder="Provide a system message... (optional)"/>
-						<div class="tooltip tooltip-bottom before:-left-[235%]" data-tip="Provide a system message to get more related results.">
+						<div class="tooltip tooltip-bottom before:-left-[235%]" data-tip="Provide a system message to get more related results. E.g. You are a software requirements engineer, always prompt me for missing information and when asked for diagrams output it in plantuml">
 							<button class="btn btn-square rounded-l-none">
 								<div class="w-5">
 									<MdInfo />
