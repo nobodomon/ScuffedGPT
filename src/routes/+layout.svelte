@@ -186,6 +186,10 @@
 	
 </script>
 
+<svelte:head>
+	<title>ScuffedGPT</title>
+</svelte:head>
+
 <div class={"drawer h-[100svh] max-h-[100svh] " + (loggedIn ? " drawer-mobile" : "")}>
 	<input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
 	<div class="drawer-content max-h-[100svh] flex flex-col relative">

@@ -85,7 +85,7 @@
 				{#if typeof block === 'string'}
 					{@html block}
 				{:else}
-					<CodeBlock code={block.code} />
+					<CodeBlock code={block.code} loading={loading} />
 				{/if}
 			{/each}
 			{/if}
