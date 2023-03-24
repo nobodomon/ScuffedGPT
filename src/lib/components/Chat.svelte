@@ -141,8 +141,9 @@
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
 				createdOn: serverTimestamp(),
-				updatedOn: serverTimestamp()
-            })
+				updatedOn: serverTimestamp(),
+				systemMessage: systemMessage
+            },{merge: true})
 
 			dispatch("updatedoc", {
 				threadID: threadID,
