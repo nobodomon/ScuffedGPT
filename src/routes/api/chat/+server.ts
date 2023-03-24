@@ -24,6 +24,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		const reqMessages: ChatCompletionRequestMessage[] = requestData.messages
 		const systemMessage = requestData.systemMessage
+		const model = requestData.model
 		if (!reqMessages) {
 			throw new Error('no messages provided')
 		}
@@ -67,7 +68,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		]
 
 		const chatRequestOpts: CreateChatCompletionRequest = {
-			model: 'gpt-3.5-turbo',
+			model: model || "gpt-3.5-turbo",
 			messages,
 			temperature: 0.9,
 			stream: true

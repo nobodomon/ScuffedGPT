@@ -13,6 +13,11 @@ export function getTokens(input: string): number {
 	return tokens.text.length
 }
 
+export function getTokensWithModel(input: string, model: string): number {
+	const tokens = tokenizer.encode(input)
+	return tokens.text.length
+}
+
 export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[]){
 	let tokens = 0
 	chatMessages.forEach((message) => {

@@ -30,6 +30,7 @@
 	let fetching: boolean = false
 
 	let systemMessage: string = ''
+	let model: String = 'gpt-3.5-turbo'
 	let chatQuery: string = ''
 
 	let showTextRecognition: boolean = false
@@ -79,7 +80,7 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			payload: JSON.stringify({ messages: gptPayload, systemMessage: systemMessage })
+			payload: JSON.stringify({ messages: gptPayload, systemMessage: systemMessage, model: model })
 		})
 
 		const promptToken = getTokens(chatQuery)
@@ -142,7 +143,8 @@
 				bookmarks: bookmarks,
 				createdOn: serverTimestamp(),
 				updatedOn: serverTimestamp(),
-				systemMessage: systemMessage
+				systemMessage: systemMessage,
+				model: model
             },{merge: true})
 
 			dispatch("updatedoc", {
@@ -155,7 +157,8 @@
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
 				updatedOn: serverTimestamp(),
-				systemMessage: systemMessage
+				systemMessage: systemMessage,
+				model: model
             }).then((docRef) => {
                 threadID = docRef.id
 
@@ -174,6 +177,7 @@
 				chatMessages = doc.data()!!.messages
 				bookmarks = doc.data()!!.bookmarks ? doc.data()!!.bookmarks.sort((a:any,b: any)=> a.index > b.index) : []
 				systemMessage = doc.data()!!.systemMessage
+				model = doc.data()!!.model
 				fetching = false
 			}
 		}).catch((error) => {
@@ -350,11 +354,11 @@
 		</div>
 		{:else}
 			{#if threadID == ""}
-			<div class="p-4">
-				<div class="form-control">
+			<div class="p-4 flex gap-4">
+				<div class="form-control grow">
 					<div class="input-group">
 						<input type="text" bind:value={systemMessage} class="input w-full" placeholder="Provide a system message... (optional)"/>
-						<div class="tooltip tooltip-bottom before:-left-[235%]" data-tip="Provide a system message to get more related results.">
+						<div class="tooltip tooltip-bottom before:-left-[235%]" data-tip="Provide a system message to get more related results. E.g. You are a software requirements engineer, always prompt me for missing information and when asked for diagrams output it in plantuml">
 							<button class="btn btn-square rounded-l-none">
 								<div class="w-5">
 									<MdInfo />
@@ -362,7 +366,12 @@
 							</button>
 						</div>
 					</div>
-				  </div>
+				</div>
+				<select class="select select-primary max-w-xs" bind:value={model}>
+					<option selected value="gpt-3.5-turbo">GPT-3.5-turbo</option>
+					<option disabled value="gpt-4">GPT-4</option>
+					<option disabled value="gpt-4-32k">GPT-4-32k</option>
+				</select>
 			</div>
 			{/if}
 			{#each chatMessages as message, index}
