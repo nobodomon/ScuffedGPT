@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		const reqMessages: ChatCompletionRequestMessage[] = requestData.messages
-
+		const systemMessage = requestData.systemMessage
 		if (!reqMessages) {
 			throw new Error('no messages provided')
 		}
@@ -53,8 +53,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			throw new Error('Query flagged by openai')
 		}
 
-		const prompt =
-			'You are a virtual assistant to replace ChatGPT when it is down. Your name is ScuffedGPT.'
+		const prompt = systemMessage || 'You are a virtual assistant to replace ChatGPT when it is down. Your name is ScuffedGPT.'
+		console.log(prompt);
 		tokenCount += getTokens(prompt)
 
 		if (tokenCount >= 4000) {

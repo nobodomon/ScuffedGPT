@@ -46,24 +46,24 @@
 
 
 {#if showModal}
-<div class="modal modal-open modal-bottom sm:modal-middle">
-    <div class="modal-box w-1/2 max-w-11/12">
-      <h3 class="font-bold text-lg">Converting image to text...</h3>
+<div class="modal modal-open modal-middle">
+    <div class="modal-box lg:w-1/2 w-11/12 max-w-full">
+      <h3 class="font-bold text-lg text-base-content">Converting image to text...</h3>
       <div class="divider"></div>
-      <div class="grid md:grid-cols-2 grid-cols-1 gap-4">
+      <div class="grid lg:grid-cols-2 grid-cols-1 gap-4">
         <img src={image.toString()} alt="img-preview" />
             {#await ocrText(image)}
             <progress class="progress progress-primary" value={progress * 100} max="100"></progress>
             {:then text}
             <div>
                 {#each splitText(text) as line}
-                    <p class="text-xs">{line}</p>
+                    <p class="text-xs text-base-content">{line}</p>
                 {/each}
             </div>
             {/await}
       </div>
       <div class="modal-action">
-        <button class="btn btn-ghost" on:click={closeModal}>Close</button>
+        <button class="btn btn-ghost text-base-content" on:click={closeModal}>Close</button>
         <button class="btn btn-primary" disabled={loading} on:click={useAsPrompt}>Use as prompt</button>
       </div>
     </div>

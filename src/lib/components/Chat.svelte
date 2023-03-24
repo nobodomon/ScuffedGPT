@@ -5,6 +5,7 @@
 	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
 	import MdStop from 'svelte-icons/md/MdStop.svelte'
 	import MdSave from 'svelte-icons/md/MdSave.svelte'
+	import MdInfo from 'svelte-icons/md/MdInfo.svelte'
 	import type { ChatCompletionRequestMessage  } from 'openai'
 	import { SSE } from 'sse.js'
 
@@ -28,6 +29,7 @@
 
 	let fetching: boolean = false
 
+	let systemMessage: string = ''
 	let chatQuery: string = ''
 
 	let showTextRecognition: boolean = false
@@ -77,7 +79,7 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			payload: JSON.stringify({ messages: gptPayload })
+			payload: JSON.stringify({ messages: gptPayload, systemMessage: systemMessage })
 		})
 
 		const promptToken = getTokens(chatQuery)
@@ -151,7 +153,8 @@
                 messages: chatMessages,
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
-				updatedOn: serverTimestamp()
+				updatedOn: serverTimestamp(),
+				systemMessage: systemMessage
             }).then((docRef) => {
                 threadID = docRef.id
 
@@ -169,6 +172,7 @@
 				threadname = doc.data()!!.name
 				chatMessages = doc.data()!!.messages
 				bookmarks = doc.data()!!.bookmarks ? doc.data()!!.bookmarks.sort((a:any,b: any)=> a.index > b.index) : []
+				systemMessage = doc.data()!!.systemMessage
 				fetching = false
 			}
 		}).catch((error) => {
@@ -326,7 +330,7 @@
 			{#if bookmarks.length > 0}
 			<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
 				{#each sortBookmarks(bookmarks) as bookmark}
-					<li class="w-full" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
+					<li class="w-full text-base-content" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
 				{/each}
 				</ul>
 			{/if}
@@ -344,6 +348,22 @@
 			</div>
 		</div>
 		{:else}
+			{#if threadID == ""}
+			<div class="p-4">
+				<div class="form-control">
+					<div class="input-group">
+						<input type="text" bind:value={systemMessage} class="input w-full" placeholder="Provide a system message"/>
+						<div class="tooltip tooltip-bottom before:-left-[235%]" data-tip="Provide a system message to get more related results.">
+							<button class="btn btn-square rounded-l-none">
+								<div class="w-5">
+									<MdInfo />
+								</div>
+							</button>
+						</div>
+					</div>
+				  </div>
+			</div>
+			{/if}
 			{#each chatMessages as message, index}
 				<ChatMessage 
 				type={message.role} 
@@ -384,10 +404,7 @@
 		{/if}
 	</form>
 
-	<TextRecognition showModal={showTextRecognition} image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt}>
+	<TextRecognition showModal={showTextRecognition} image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt}/>
 
-	</TextRecognition>
-
-	<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}>
-	</BookmarkModal>
+	<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
 </div>
