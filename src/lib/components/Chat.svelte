@@ -173,7 +173,7 @@
 				threadname = doc.data()!!.name
 				chatMessages = doc.data()!!.messages
 				bookmarks = doc.data()!!.bookmarks ? doc.data()!!.bookmarks.sort((a:any,b: any)=> a.index > b.index) : []
-				systemMessage = doc.data()!!.systemMessage
+				systemMessage = doc.data()!!.systemMessage ? doc.data()!!.systemMessage : ""
 				fetching = false
 			}
 		}).catch((error) => {
@@ -215,8 +215,6 @@
 			}
 		}
 	}
-
-
 
 	async function read (file: any) {
         return new Promise<any>((resolve, reject) => {
@@ -318,24 +316,20 @@
 				${(getTotalTokens(chatMessages)/1000 * 0.002).toFixed(4)}
 			</div>
 		</label>
+		{#if bookmarks.length > 0}
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<label tabindex="0" class="btn btn-square">
 				<div class="w-5">
-					{#if bookmarks.length > 0}
 						<MdBookmark />
-					{:else}
-						<MdBookmarkBorder />
-					{/if}
 				</div>
 			</label>
-			{#if bookmarks.length > 0}
 			<ul tabindex="0" class="dropdown-content menu p-2 mt-2 shadow bg-base-100 rounded-box w-52">
 				{#each sortBookmarks(bookmarks) as bookmark}
 					<li class="w-full text-base-content" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
 				{/each}
-				</ul>
-			{/if}
+			</ul>
 		</div>
+		{/if}
 	</div>
 	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow ">
 		<div class="flex flex-col relative">

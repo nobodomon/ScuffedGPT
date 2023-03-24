@@ -9,8 +9,6 @@
     export let loading: boolean;
     // split code into list of lines
 
-    console.log(code);
-
     function handleCopyCode() {
         navigator.clipboard.writeText(getCodePart());
     }

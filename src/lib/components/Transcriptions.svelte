@@ -5,7 +5,7 @@
     import MdDeleteSweep from 'svelte-icons/md/MdDeleteSweep.svelte';
     import {getAuth} from "firebase/auth";
 
-    import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where} from "firebase/firestore";
+    import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where, orderBy} from "firebase/firestore";
 	import type { ChatCompletionRequestMessage } from "openai"
 	import { toSeconds } from "../../utils"
 
@@ -15,34 +15,31 @@
     export let totalTranscribed : number;
     export let currTranscriptionID : string;
 
-    let loading : boolean = true;
-
-    function switchTranscription(transcriptionId : any) {
-        currTranscriptionID = transcriptionId;
-        dispatch("transcriptionSwitch", {
-            transcriptionId: transcriptionId,
+    onMount(async () => {
+        const auth = getAuth();
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const q = query(transcriptionsCollection, where("user", "==", auth.currentUser?.uid), orderBy("date", "desc"));
+                onSnapshot(q, (querySnapshot) => {
+                    transcriptions = [];
+                    querySnapshot.forEach((doc) => {
+                        transcriptions.push({
+                            id: doc.id,
+                            ...doc.data(),
+                        });
+                    });
+                });
+            } else {
+                transcriptions = [];
+            }
         });
-    }
+    });
 
-    function newTranscription() {
-        currTranscriptionID = "";
-        dispatch("transcriptionNew", {
-            transcriptionId: "",
-        });
-    }
 
     function deleteTranscription(transcriptionId : any) {
         deleteDoc(doc(transcriptionsCollection, transcriptionId));
-        dispatch("transcriptionDelete", {
-        });
     }
 
-    function onNewThread() {
-        dispatch("onNewThread", {
-            id: "",
-            pageType: "transcribe",
-        });
-    }
 
     
     function truncate(str : string, len : number) {
@@ -57,10 +54,6 @@
         }
     }
     
-    function deleteAllTranscriptions() {
-        dispatch("deleteAllTranscriptions", {
-        });
-    }
 
     function onDeleteAll(){
         const q = query(transcriptionsCollection, where("user", "==", auth.currentUser?.uid));
@@ -92,9 +85,9 @@
         {:else}
         
         <div class="w-full flex items-center gap-1">
-            <button class="btn btn-base grow" on:click={() => onNewThread()}>
+            <a class="btn btn-base grow" href="/transcribe">
                 New Transcription
-            </button>
+            </a>
             <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> onDeleteAll()}>
                 <div class="w-10 p-2">
                     <MdDeleteSweep />
@@ -104,9 +97,9 @@
         <div class="divider"></div>
         {#each transcriptions as transcription}
             <div class="w-full flex items-center gap-1">
-                <button class={"btn grow overflow-hidden " + (transcription.id === currTranscriptionID ? "btn-primary" : "btn-base-100")} on:click|preventDefault={() => switchTranscription(transcription.id)}>
+                <a class={"btn grow overflow-hidden " + (transcription.id === currTranscriptionID ? "btn-primary" : "btn-base-100")} href="{`/transcribe/${transcription.id}`}">
                     {transcription.name  == "" ? transform(transcription.text?? "Unnamed Transcript") : transform(transcription.name)}
-                </button>
+                </a>
                 <button class="btn btn-ghost btn-square" on:click|preventDefault={()=> deleteTranscription(transcription.id)}>
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x  stroke-base-content" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>

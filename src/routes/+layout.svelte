@@ -3,9 +3,9 @@
 	import '../app.css'
 	import { auth,threadsCollection,transcriptionsCollection, userCollection } from '../firebase'
 	import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
-	import Transcribe from '$lib/components/Transcribe.svelte'
+	//import Transcribe from '$lib/components/Transcribe.svelte'
 	import Threads from '$lib/components/Threads.svelte'
-	import Chat from '$lib/components/Chat.svelte'
+	//import Chat from '$lib/components/Chat.svelte'
 	import type { ChatCompletionRequestMessage } from 'openai'
 
 	import {getFirestore, onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where, increment, updateDoc, orderBy} from "firebase/firestore";
@@ -32,7 +32,6 @@
 			uid = user.uid
 			user = user
 			loggedIn = true
-			allThreads = await loadThreads()
 			allTranscriptions = await loadTranscriptions()
 
 			const userTokens = doc(firestore, "Users", uid);
@@ -96,20 +95,6 @@
 		}, {merge: true});
 	}
 	
-    async function loadThreads () {
-        let threads : any[] = [];
-        const q = query(threadsCollection, where("users", "==", uid), orderBy("updatedOn", "desc"));
-        const snapshot = await getDocs(q);
-
-        snapshot.forEach((doc) => {
-            threads.push({
-                id: doc.id,
-                name: doc.data().name,
-            });
-        });
-
-        return threads;
-    }
 
 	async function loadTranscriptions () {
 		let transcriptions : any[] = [];
@@ -128,7 +113,6 @@
 	}
 
 	let currID: string = ''
-	let chat : Chat;
 	let threads: Threads
 
 	const handleThreadSwitch = async (e: any) => {
@@ -136,19 +120,6 @@
 		pageType = 'chat'
 	}
 
-	async function handleThreadAdd(e: any) {
-		pageType = 'chat'
-		allThreads = await loadThreads()
-		currID = e.detail.threadID
-	}
-
-	async function handleThreadDelete(e: any) {
-		currID = ""
-		pageType = 'chat'
-		allThreads = await loadThreads()
-	}
-
-	let transcribe : Transcribe
 	let transcriptions : Transcriptions
 
 	const handleTranscriptionSwitch = async (e: any) => {
@@ -189,6 +160,7 @@
 <svelte:head>
 	<title>ScuffedGPT</title>
 </svelte:head>
+
 
 <div class={"drawer h-[100svh] max-h-[100svh] " + (loggedIn ? " drawer-mobile" : "")}>
 	<input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
@@ -234,7 +206,8 @@
 			</label>
 		</div>
 		{#if loggedIn}
-			{#if pageType == 'chat'}
+			<slot/>
+			<!-- {#if pageType == 'chat'}
 				<Chat
 					threadID={currID}
 					on:updatedoc={handleThreadAdd}
@@ -250,7 +223,7 @@
 					transcriptionId={currID}
 					bind:this={transcribe}
 				/>
-			{/if}
+			{/if} -->
 		{:else}
 			<div class="h-full w-100 grow flex items-center place-self-center">
 				<LoginBlock />
@@ -297,15 +270,8 @@
 					transcriptions={allTranscriptions}
 				/>
 				<Threads
-					on:threadswitch={handleThreadSwitch}
-					on:threadswitchNew={handleThreadSwitch}
-					on:threaddelete={handleThreadDelete}
-					on:onNewThread={handleNew}
-					on:deleteAll={handleDeleteAll}
-					usedTokens = {usedTokens}
+				  	currId={currID}
 					bind:this={threads}
-					threads={allThreads}
-					currThreadID={currID}
 				/>
 			{/if}
 		</ul>
