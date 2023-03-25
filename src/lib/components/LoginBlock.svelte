@@ -72,6 +72,7 @@
 					type="password"
 					placeholder="Type here"
 					class="input input-bordered w-full"
+					autocomplete="current-password"
 					bind:value={password}
 				/>
 			</div>

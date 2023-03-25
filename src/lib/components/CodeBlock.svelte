@@ -1,57 +1,47 @@
-<script lang="ts">
+<script lang="js">
     import { Highlight, HighlightAuto, LineNumbers } from "svelte-highlight";
 
     import "svelte-highlight/styles/horizon-dark.css"
     import MdContentCopy from 'svelte-icons/md/MdContentCopy.svelte'
     import * as plantumlEncoder from 'plantuml-encoder'
 
-    export let code : String;
-    export let loading: boolean;
     // split code into list of lines
+    
+    export let text;
+    export let lang;
 
     function handleCopyCode() {
-        navigator.clipboard.writeText(getCodePart());
+        navigator.clipboard.writeText(text);
     }
 
     const getLanguage = () =>{
-        if(code.startsWith(" ")){
-            return "";
-        }else{
-            return code.split('\n')[0];
-        }
+        return lang;
     }
 
     const getCodePart = () =>{
-        return code.slice(getLanguage().length).trim();
+        console.log("code", text);
+        return text;
     }
 
     const detectPlantUML = ()=>{ 
-        var code = getCodePart();
-        if(code.startsWith("@startuml")){
+        if(text.startsWith("@startuml")){
             return true;
         }
 
-        if(code.startsWith("@enduml")){
+        if(text.startsWith("@enduml")){
             return true;
         }
-
-        if(getLanguage().toLowerCase() === "plantuml"){
-            return true;
-        }
-
         return false;
     }
 </script>
 
 <div class="mockup-code my-4 self-stretch">
     <div class="w-full flex justify-between p-4 border-b border-base-100 border-b-2 items-center">
-        <span class="font-bold capitalize italic">{getLanguage()}</span>
+        <span class="font-bold capitalize italic"></span>
         
         <div class="flex gap-4">
-        {#if !loading}
-            {#if detectPlantUML()}
-                <a class="btn btn-ghost btn-sm" target="_blank" href={'http://www.plantuml.com/plantuml/img/' + plantumlEncoder.encode(getCodePart())}>View</a>
-            {/if}
+        {#if detectPlantUML()}
+            <a class="btn btn-ghost btn-sm" target="_blank" href={'http://www.plantuml.com/plantuml/img/' + plantumlEncoder.encode(text)}>View</a>
         {/if}
         <button class="btn btn-ghost btn-sm flex gap-4" on:click={handleCopyCode}>
             <div class="w-5">
@@ -61,7 +51,8 @@
         </button>
         </div>
     </div>
-    <HighlightAuto code={code.slice(getLanguage().length).trim()} let:highlighted>
+    
+    <HighlightAuto code={text} let:highlighted>
         <LineNumbers {highlighted} />
     </HighlightAuto>
 </div>
