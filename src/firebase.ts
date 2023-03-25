@@ -22,8 +22,6 @@ const app = initializeApp(firebaseConfig);
 
 export const firestore = getFirestore(app);
 
-enableIndexedDbPersistence(firestore);
-
 export const threadsCollection = collection(firestore, 'Threads');
 
 export const transcriptionsCollection = collection(firestore, 'Transcriptions');
