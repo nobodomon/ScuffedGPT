@@ -37,7 +37,7 @@
 
 <div class="mockup-code my-4 self-stretch">
     <div class="w-full flex justify-between p-4 border-b border-base-100 border-b-2 items-center">
-        <span class="font-bold capitalize italic"></span>
+        <span class="font-bold capitalize italic">{lang}</span>
         
         <div class="flex gap-4">
         {#if detectPlantUML()}
