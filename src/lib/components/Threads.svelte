@@ -55,7 +55,7 @@
 
     async function deleteThread(threadId : any) {
         await deleteDoc(doc(threadsCollection, threadId));
-        navigate("/chat", {
+        navigate("/", {
             replace: true,
         });
     }
