@@ -9,7 +9,7 @@
 	import type { ChatCompletionRequestMessage  } from 'openai'
 	import { SSE } from 'sse.js'
 
-    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp, query } from 'firebase/firestore'
+    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp, query, increment } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {threadsCollection} from "../../firebase"
@@ -102,11 +102,7 @@
 					answer = ''
 
                     await updateDb();
-
-
-					dispatch("chatUpdate", {
-						tokensUsed: promptToken + ansToken,
-					});
+					await updateTokenUsed(promptToken + ansToken);
 
 					return
 				}
@@ -144,10 +140,6 @@
 				updatedOn: serverTimestamp(),
 				systemMessage: systemMessage
             },{merge: true})
-
-			dispatch("updatedoc", {
-				threadID: threadID,
-			});
         }else{
             await addDoc(threadsCollection, {
                 name: threadname,
@@ -165,6 +157,13 @@
             })
         }
     }
+
+	async function updateTokenUsed(tokens: number){
+		const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
+		await setDoc(userRef, {
+			tokensUsed: increment(tokens)
+		}, {merge: true})
+	}
 
 	export async function getThread(threadId: string){
 		fetching = true;
@@ -318,13 +317,18 @@
 		</label>
 		{#if bookmarks.length > 0}
 		<div class="dropdown dropdown-bottom dropdown-end">
+			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label tabindex="0" class="btn btn-square">
 				<div class="w-5">
 						<MdBookmark />
 				</div>
 			</label>
+			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 			<ul tabindex="0" class="dropdown-content menu p-2 mt-2 shadow bg-base-100 rounded-box w-52">
 				{#each sortBookmarks(bookmarks) as bookmark}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<!-- svelte-ignore a11y-missing-attribute -->
 					<li class="w-full text-base-content" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
 				{/each}
 			</ul>

@@ -81,6 +81,7 @@
 			>
 			<div class="alert alert-error shadow-lg" class:hidden={!loginError.status}>
 				<div>
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						class="stroke-current flex-shrink-0 h-6 w-6"
