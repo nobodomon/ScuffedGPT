@@ -89,7 +89,6 @@
 		eventSource.addEventListener('error', handleError)
 
 		eventSource.addEventListener('message', async (e) => {
-			scrollToBottom()
 			try {
 				loading = false
 				if (e.data === '[DONE]') {
@@ -103,7 +102,7 @@
 
                     await updateDb();
 					await updateTokenUsed(promptToken + ansToken);
-
+					scrollToBottom()
 					return
 				}
 				
@@ -335,7 +334,7 @@
 		</div>
 		{/if}
 	</div>
-	<div class="w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow ">
+	<div class={"w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow " + (answer != "" || fetching ? "animate-pulse" : "")}>
 		<div class="flex flex-col relative">
 			
 		{#if fetching}
