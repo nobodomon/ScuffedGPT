@@ -5,6 +5,7 @@
 	import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 	//import Transcribe from '$lib/components/Transcribe.svelte'
 	import Threads from '$lib/components/Threads.svelte'
+	import ImageThreads from '$lib/components/ImageThreads.svelte'
 	//import Chat from '$lib/components/Chat.svelte'
 	import type { ChatCompletionRequestMessage } from 'openai'
 
@@ -23,6 +24,12 @@
 
 	let usedTokens = 0;
 	let totalDuration = 0;
+	let s_count = 0;
+	let m_count = 0;
+	let l_count = 0;
+
+	let totalCost = "";
+
 	const firestore = getFirestore()
 
 	auth.onAuthStateChanged( async (user) => {
@@ -39,6 +46,11 @@
 				if(doc.exists()){
 					usedTokens = doc.data().tokensUsed? doc.data().tokensUsed : 0
 					totalDuration = doc.data().transcriptionTime? doc.data().transcriptionTime : 0
+					s_count = doc.data()["256x256"]? doc.data()["256x256"] : 0
+					m_count = doc.data()["512x512"]? doc.data()["512x512"] : 0
+					l_count = doc.data()["1024x1024"]? doc.data()["1024x1024"] : 0
+				
+					totalCost = calculateTotalCost();
 				}
 			});
 			
@@ -64,6 +76,20 @@
 	onMount(()=>{
 		themeChange(false);
 	})
+
+	function calculateTotalCost(){
+		const durationCost = (totalDuration/60 * 0.006).toFixed(4);
+		const tokenCost = (usedTokens/1000 * 0.002).toFixed(4);
+		const s_cost = (s_count * 0.016).toFixed(4);
+		const m_cost = (m_count * 0.018).toFixed(4);
+		const l_cost = (l_count * 0.02).toFixed(4);
+
+		console.log(durationCost, tokenCost, s_cost, m_cost, l_cost)
+
+		let total = (parseFloat(durationCost) + parseFloat(tokenCost) + parseFloat(s_cost) + parseFloat(m_cost) + parseFloat(l_cost)).toFixed(4);
+		console.log(total)
+		return total;
+	}
 </script>
 
 <svelte:head>
@@ -133,7 +159,7 @@
 					<div class="collapse-title text-primary-content">
 						<div class="col-span-2 flex flex-col gap-4">
 							<h1 class="text-sm text-secondary font-bold">Total estimated cost</h1>
-							<h1 class="text-sm font-bold text-base-content">{((totalDuration/60 * 0.006) + (usedTokens/1000 * 0.002)).toFixed(4)} USD</h1>
+							<h1 class="text-sm font-bold text-base-content">{totalCost} USD</h1>
 							<h1 class="text-sm text-accent font-bold">Click here for usage breakdown</h1>
 						</div>
 					</div>
@@ -147,12 +173,20 @@
 							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
 							<h1 class="text-sm ">{usedTokens}</h1>
 							<h1 class="text-sm ">{(usedTokens/1000 * 0.002).toFixed(4)} USD</h1>
+							<h1 class="text-md text-secondary font-bold">Images Generated</h1>
+							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
+							<h1 class="text-sm ">{s_count} x 256x256</h1>
+							<h1 class="text-sm ">{(s_count * 0.016).toFixed(4)} USD</h1>
+							<h1 class="text-sm ">{m_count} x 512x512</h1>
+							<h1 class="text-sm ">{(m_count * 0.018).toFixed(4)} USD</h1>
+							<h1 class="text-sm ">{l_count} x 1024x1024</h1>
+							<h1 class="text-sm ">{(l_count * 0.02).toFixed(4)} USD</h1>
 						</div>
 					</div>
 				  </div>
 				<Transcriptions/>
-				<Threads
-				/>
+				<Threads/>
+				<ImageThreads/>
 			{/if}
 		</ul>
 	</div>

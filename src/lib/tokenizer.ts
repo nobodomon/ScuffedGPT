@@ -32,3 +32,51 @@ export function getTokensFromAllThreads(threads: any[]){
 
 	return tokens
 }
+
+export function getTotalImageCost(imageMessage: any[]){
+	let s_count = 0
+	let m_count = 0
+	let l_count = 0
+
+	console.log(imageMessage);
+
+	imageMessage.forEach((message: any) => {
+		if(message.size == "256x256"){
+			s_count += message.n
+		}else if(message.size == "512x512"){
+			m_count += message.n
+		}else if(message.size == "1024x1024"){
+			l_count += message.n
+		}
+	})
+
+	return {
+		s_count: s_count,
+		m_count: m_count,
+		l_count: l_count
+	}
+}
+
+export function getImageCostFromAllThreads(threads: any[]){
+	let s_count = 0
+	let m_count = 0
+	let l_count = 0
+
+	threads.forEach((thread: any) => {
+		thread.messages.forEach((message: any) => {
+			if(message.size == "256x256"){
+				s_count += message.n
+			}else if(message.size == "512x512"){
+				m_count += message.n
+			}else if(message.size == "1024x1024"){
+				l_count += message.n
+			}
+		})
+	})
+
+	return {
+		s_count: s_count,
+		m_count: m_count,
+		l_count: l_count
+	}
+}

@@ -24,6 +24,8 @@ export const firestore = getFirestore(app);
 
 export const threadsCollection = collection(firestore, 'Threads');
 
+export const imageThreadsCollection = collection(firestore, 'ImageThreads');
+
 export const transcriptionsCollection = collection(firestore, 'Transcriptions');
 
 export const userCollection = collection(firestore, 'Users');
