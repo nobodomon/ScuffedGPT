@@ -14,8 +14,6 @@ export const POST: RequestHandler = async ({ request }) => {
             throw new Error('OPENAI_KEY env variable not set')
         }
 
-        console.log(request);
-
         const requestData = await request.formData()
         if (!requestData) {
             throw new Error('No request data')
