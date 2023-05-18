@@ -36,7 +36,6 @@ export const POST: RequestHandler = async ({ request }) => {
                 body: JSON.stringify({
                     prompt: prompt,
                     n: parsedN,
-                    response_format: 'b64_json',
                     size: size != null ? size : "256x256"
                 })
             })

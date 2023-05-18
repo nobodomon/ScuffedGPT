@@ -52,7 +52,7 @@
                 
                 {#each message as image, index}
                     <div class="rounded-box">
-                        <img src={`data:image/jpeg;base64, ${image.b64_json?? ""}`} alt="" class="rounded-box max-w-[256px]" />
+                        <img src={image.url?? ""} alt="" class="rounded-box max-w-[256px]" />
                     </div> 
                 {/each}
             </div>
