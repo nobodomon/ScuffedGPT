@@ -18,6 +18,7 @@
 	import {createEventDispatcher} from 'svelte';
 	import { onMount } from 'svelte'
 	import { getTokens, getTotalTokens } from '$lib/tokenizer'
+	import { updateTokenUsed } from '$lib/token'
 	import TextRecognition from './TextRecognition.svelte'
 
     export let threadID = ""
@@ -29,6 +30,7 @@
 
 	let fetching: boolean = false
 
+	let model: string = 'gpt-3.5-turbo'
 	let systemMessage: string = ''
 	let chatQuery: string = ''
 
@@ -79,7 +81,11 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			payload: JSON.stringify({ messages: gptPayload, systemMessage: systemMessage })
+			payload: JSON.stringify({ 
+				messages: gptPayload, 
+				systemMessage: systemMessage,
+				model: model
+			})
 		})
 
 		const promptToken = getTokens(chatQuery)
@@ -101,7 +107,10 @@
 					answer = ''
 
                     await updateDb();
-					await updateTokenUsed(promptToken + ansToken);
+					await updateTokenUsed({
+						prompt: promptToken,
+						answer: ansToken,
+					},model, undefined);
 					scrollToBottom()
 					return
 				}
@@ -133,6 +142,7 @@
             await setDoc(doc(firestore, "Threads", threadID), {
                 name: threadname,
                 messages: chatMessages,
+				model: model,
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
 				createdOn: serverTimestamp(),
@@ -143,6 +153,7 @@
             await addDoc(threadsCollection, {
                 name: threadname,
                 messages: chatMessages,
+				model: model,
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
 				updatedOn: serverTimestamp(),
@@ -157,19 +168,13 @@
         }
     }
 
-	async function updateTokenUsed(tokens: number){
-		const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
-		await setDoc(userRef, {
-			tokensUsed: increment(tokens)
-		}, {merge: true})
-	}
-
 	export async function getThread(threadId: string){
 		fetching = true;
 		getDoc(doc(firestore, "Threads", threadId)).then((doc) => {
 			if (doc.exists()) {
 				threadname = doc.data()!!.name
 				chatMessages = doc.data()!!.messages
+				model = doc.data()!!.model
 				bookmarks = doc.data()!!.bookmarks ? doc.data()!!.bookmarks.sort((a:any,b: any)=> a.index > b.index) : []
 				systemMessage = doc.data()!!.systemMessage ? doc.data()!!.systemMessage : ""
 				fetching = false
@@ -311,7 +316,7 @@
 				{getTotalTokens(chatMessages)} tokens
 			</div>
 			<div class="btn btn-accent break-keep swap-on">
-				${(getTotalTokens(chatMessages)/1000 * 0.002).toFixed(4)}
+				${(getTotalTokens(chatMessages)/1000 * 0.0015).toFixed(4)}
 			</div>
 		</label>
 		{#if bookmarks.length > 0}
@@ -347,8 +352,8 @@
 		</div>
 		{:else}
 			{#if threadID == ""}
-			<div class="p-4">
-				<div class="form-control">
+			<div class="p-4 flex gap-4">
+				<div class="form-control grow">
 					<div class="input-group">
 						<input type="text" bind:value={systemMessage} class="input w-full" placeholder="Provide a system message... (optional)"/>
 						<div class="tooltip tooltip-bottom before:-left-[235%]" data-tip="Provide a system message to get more related results. E.g. You are a software requirements engineer, always prompt me for missing information and when asked for diagrams output it in plantuml">
@@ -360,6 +365,11 @@
 						</div>
 					</div>
 				  </div>
+				  
+				  <select bind:value={model} class="select shrink">
+					<option selected value={'gpt-3.5-turbo'}>GPT 3.5</option>
+					<option value={'gpt-4'}>GPT 4</option>
+				  </select>
 			</div>
 			{/if}
 			{#each chatMessages as message, index}

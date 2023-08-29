@@ -21,6 +21,7 @@
 	import TextRecognition from './TextRecognition.svelte'
 	import { parse } from 'postcss'
 	import ImageMessage from './ImageMessage.svelte'
+	import { updateTokenUsed } from '$lib/token'
 
     export let threadID = ""
 	let threadname = ""
@@ -107,8 +108,12 @@
 
 
         await updateDb();
-        await updateTokenUsed();
 
+		await updateTokenUsed(parseInt(n), 'DALL-E', size)
+
+		n = "1";
+        size = "256x256";
+		prompt = ""
         
 		scrollToBottom()
 	}
@@ -145,43 +150,6 @@
             })
         }
     }
-
-	async function updateTokenUsed(){
-		const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
-
-        switch(size) {
-            case "256x256": 
-                await setDoc(userRef, {
-                    "256x256": increment(1)
-                    }, {merge: true})
-                prompt = "";
-                n = "1";
-                size = "256x256";
-                break;
-
-            case "512x512":
-                await setDoc(userRef, {
-                    "512x512": increment(1)
-                    }, {merge: true})
-                prompt = "";
-                n = "1";
-                size = "256x256";
-                break;
-
-            case "1024x1024":
-                await setDoc(userRef, {
-                    "1024x1024": increment(1)
-                    }, {merge: true})
-                prompt = "";
-                n = "1";
-                size = "256x256";
-                break;
-
-            default:{
-                return;
-            }
-        }
-	}
 
 	export async function getThread(threadId: string){
 		fetching = true;
@@ -342,7 +310,7 @@
 				${getImagesCost(results)}
 			</div>
 			<div class="btn btn-accent break-keep swap-on">
-				<!-- ${(getTotalTokens(chatMessages)/1000 * 0.002).toFixed(4)} -->
+				<!-- ${(getTotalTokens(chatMessages)/1000 * 0.0015).toFixed(4)} -->
 			</div>
 		</label>
 		{#if bookmarks.length > 0}
@@ -408,7 +376,7 @@
 			<label class="label">
 			  <span class="label-text">Number of images?</span>
 			</label>
-			<input type="number" placeholder="Number of images" bind:value={n} class="input input-bordered input-primary w-full max-w-xs" />
+			<input type="number" min="1" max="10" placeholder="Number of images" bind:value={n} class="input input-bordered input-primary w-full max-w-xs" />
 		</div>
 		<div class="form-control w-full max-w-xs">
 			<label class="label">

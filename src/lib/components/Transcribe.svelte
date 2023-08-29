@@ -11,6 +11,7 @@
     import MdRemoveCircleOutline from 'svelte-icons/md/MdRemoveCircleOutline.svelte'
     import MdAccessTime from 'svelte-icons/md/MdAccessTime.svelte'
     import MdAttachMoney from 'svelte-icons/md/MdAttachMoney.svelte'
+	import { updateTokenUsed } from '$lib/token'
 
     export let transcriptionId = ""
 
@@ -109,6 +110,10 @@
             processingOutput = processingOutput.concat(eventSource.text, "\n")
             processingDuration = processingDuration.concat(eventSource.duration)
         }
+
+        console.log(processingDuration)
+
+        await updateTokenUsed(processingDuration, 'whisper-1',undefined);
         loading = false
         processing = 0
         output = processingOutput

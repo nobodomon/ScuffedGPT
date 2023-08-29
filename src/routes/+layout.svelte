@@ -23,6 +23,8 @@
 	let allTranscriptions : any[] = []
 
 	let usedTokens = 0;
+	let gpt4PromptTokensUsed = 0;
+	let gpt4AnswerTokensUsed = 0;
 	let totalDuration = 0;
 	let s_count = 0;
 	let m_count = 0;
@@ -45,6 +47,8 @@
 			onSnapshot(userTokens, (doc) => {
 				if(doc.exists()){
 					usedTokens = doc.data().tokensUsed? doc.data().tokensUsed : 0
+					gpt4PromptTokensUsed = doc.data().gpt4PromptTokensUsed? doc.data().gpt4PromptTokensUsed : 0
+					gpt4AnswerTokensUsed = doc.data().gpt4AnswerTokensUsed? doc.data().gpt4AnswerTokensUsed : 0
 					totalDuration = doc.data().transcriptionTime? doc.data().transcriptionTime : 0
 					s_count = doc.data()["256x256"]? doc.data()["256x256"] : 0
 					m_count = doc.data()["512x512"]? doc.data()["512x512"] : 0
@@ -79,15 +83,12 @@
 
 	function calculateTotalCost(){
 		const durationCost = (totalDuration/60 * 0.006).toFixed(4);
-		const tokenCost = (usedTokens/1000 * 0.002).toFixed(4);
+		const tokenCost = (usedTokens/1000 * 0.0015).toFixed(4);
+		const gpt4TokensCost = ((gpt4PromptTokensUsed/1000 * 0.003) + (gpt4AnswerTokensUsed/1000 * 0.006)).toFixed(4);
 		const s_cost = (s_count * 0.016).toFixed(4);
 		const m_cost = (m_count * 0.018).toFixed(4);
 		const l_cost = (l_count * 0.02).toFixed(4);
-
-		console.log(durationCost, tokenCost, s_cost, m_cost, l_cost)
-
-		let total = (parseFloat(durationCost) + parseFloat(tokenCost) + parseFloat(s_cost) + parseFloat(m_cost) + parseFloat(l_cost)).toFixed(4);
-		console.log(total)
+		let total = (parseFloat(durationCost) + parseFloat(tokenCost) + parseFloat(gpt4TokensCost) + parseFloat(s_cost) + parseFloat(m_cost) + parseFloat(l_cost)).toFixed(4);
 		return total;
 	}
 </script>
@@ -97,7 +98,7 @@
 </svelte:head>
 
 
-<div class={"drawer h-[100svh] max-h-[100svh] " + (loggedIn ? " drawer-mobile" : "")}>
+<div class={"drawer h-[100svh] max-h-[100svh] lg:drawer-open" + (loggedIn ? " drawer-mobile" : "")}>
 	<input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
 	<div class="drawer-content max-h-[100svh] flex flex-col relative">
 		<div class="w-full navbar bg-base-100 gap-4">
@@ -150,7 +151,7 @@
 	</div>
 	<div class="drawer-side shadow-lg">
 		<label for="my-drawer-2" class="drawer-overlay" />
-		<ul class="menu w-80 bg-base-300 text-base-content gap-4">
+		<ul class="menu w-80 min-h-full bg-base-300 text-base-content gap-4">
 			<!-- Sidebar content here -->
 
 			{#if loggedIn}
@@ -169,10 +170,18 @@
 							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
 							<h1 class="text-sm ">{toSeconds(totalDuration,"mm[m] ss[s] SS[ms]")}</h1>
 							<h1 class="text-sm ">{(totalDuration/60 * 0.006).toFixed(4)} USD</h1>
-							<h1 class="text-md text-secondary font-bold">Total tokens</h1>
+							<h1 class="text-md text-secondary font-bold">GPT3 tokens</h1>
 							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
 							<h1 class="text-sm ">{usedTokens}</h1>
-							<h1 class="text-sm ">{(usedTokens/1000 * 0.002).toFixed(4)} USD</h1>
+							<h1 class="text-sm ">{(usedTokens/1000 * 0.0015).toFixed(4)} USD</h1>
+							<h1 class="text-md text-secondary font-bold">GPT4 Prompt tokens</h1>
+							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
+							<h1 class="text-sm ">{gpt4PromptTokensUsed}</h1>
+							<h1 class="text-sm ">{(gpt4PromptTokensUsed/1000 * 0.003).toFixed(4)} USD</h1>
+							<h1 class="text-md text-secondary font-bold">GPT4 Answer tokens</h1>
+							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
+							<h1 class="text-sm ">{gpt4AnswerTokensUsed}</h1>
+							<h1 class="text-sm ">{(gpt4AnswerTokensUsed/1000 * 0.006).toFixed(4)} USD</h1>
 							<h1 class="text-md text-secondary font-bold">Images Generated</h1>
 							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
 							<h1 class="text-sm ">{s_count} x 256x256</h1>
