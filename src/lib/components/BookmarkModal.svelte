@@ -23,7 +23,7 @@
 </script>
 
 {#if showModal}
-<div class="modal modal-open">
+<dialog class="modal modal-bottom sm:modal-middle" id='bookmarkModal'>
     <div class="modal-box">
       <h3 class="font-bold text-lg text-base-content">Enter a bookmark name</h3>
       <div class="divider"></div>
@@ -33,5 +33,8 @@
         <button class="btn btn-primary" on:click={handleBookmark}>Save</button>
       </div>
     </div>
-  </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
 {/if}

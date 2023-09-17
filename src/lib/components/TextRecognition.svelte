@@ -46,8 +46,8 @@
 
 
 {#if showModal}
-<div class="modal modal-open modal-middle">
-    <div class="modal-box lg:w-1/2 w-11/12 max-w-full">
+<dialog id="textRecognitionModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
       <h3 class="font-bold text-lg text-base-content">Converting image to text...</h3>
       <div class="divider"></div>
       <div class="grid lg:grid-cols-2 grid-cols-1 gap-4">
@@ -67,7 +67,10 @@
         <button class="btn btn-primary" disabled={loading} on:click={useAsPrompt}>Use as prompt</button>
       </div>
     </div>
-</div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+</dialog>
 {/if}
 
 

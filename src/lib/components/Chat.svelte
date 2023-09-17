@@ -9,7 +9,7 @@
 	import type { ChatCompletionRequestMessage  } from 'openai'
 	import { SSE } from 'sse.js'
 
-    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp, query, increment } from 'firebase/firestore'
+    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp, query, increment, onSnapshot } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {threadsCollection} from "../../firebase"
@@ -25,6 +25,7 @@
 	let threadname = ""
 	let chatMessages: ChatCompletionRequestMessage[] = []
 	let bookmarks: any[] = []
+	let users: any[] = []
 	let loading: boolean = false
 	let inProgress: boolean = false
 
@@ -138,12 +139,17 @@
 	}
 
     async function updateDb(){
+
+		if(users.indexOf(auth.currentUser!!.uid) == -1){
+			users.push(auth.currentUser!!.uid)
+		}
+
         if(threadID != ""){
             await setDoc(doc(firestore, "Threads", threadID), {
                 name: threadname,
                 messages: chatMessages,
 				model: model,
-                users: auth.currentUser!!.uid,
+                users: users,
 				bookmarks: bookmarks,
 				createdOn: serverTimestamp(),
 				updatedOn: serverTimestamp(),
@@ -154,7 +160,7 @@
                 name: threadname,
                 messages: chatMessages,
 				model: model,
-                users: auth.currentUser!!.uid,
+                users: users,
 				bookmarks: bookmarks,
 				updatedOn: serverTimestamp(),
 				systemMessage: systemMessage
@@ -170,17 +176,16 @@
 
 	export async function getThread(threadId: string){
 		fetching = true;
-		getDoc(doc(firestore, "Threads", threadId)).then((doc) => {
-			if (doc.exists()) {
-				threadname = doc.data()!!.name
-				chatMessages = doc.data()!!.messages
-				model = doc.data()!!.model
-				bookmarks = doc.data()!!.bookmarks ? doc.data()!!.bookmarks.sort((a:any,b: any)=> a.index > b.index) : []
-				systemMessage = doc.data()!!.systemMessage ? doc.data()!!.systemMessage : ""
-				fetching = false
-			}
-		}).catch((error) => {
-			console.log("Error getting document:", error);
+		onSnapshot(doc(firestore, "Threads", threadId), (doc) => {
+			
+			threadname = doc.data()!!.name
+			chatMessages = doc.data()!!.messages
+			model = doc.data()!!.model
+			users = typeof doc.data()!!.users == 'string' ? [doc.data()!!.users] : doc.data()!!.users
+			bookmarks = doc.data()!!.bookmarks ? doc.data()!!.bookmarks.sort((a:any,b: any)=> a.index > b.index) : []
+			systemMessage = doc.data()!!.systemMessage ? doc.data()!!.systemMessage : ""
+			fetching = false
+
 		});
 	}
 
@@ -197,6 +202,7 @@
 				await read(file).then((reader) => {
 					image = reader.result
 					showTextRecognition = true
+					document.getElementById("textRecognitionModal")?.showModal();
 				})
 				}
 			}
@@ -210,8 +216,10 @@
 				if (imageFile) {
 				// Image is pasted, handle it here
 				await read(imageFile).then((reader) => {
-					image = reader.result
+					image = reader.result;
+
 					showTextRecognition = true
+					document.getElementById("textRecognitionModal")?.showModal();
 				})
 				}
 			}
@@ -250,6 +258,7 @@
 			await updateDb()
 		}else{
 			showBookmarkModal = true
+			document.getElementById('bookmarkModal')?.showModal();
 			index = e.detail.index
 		}
 	}
@@ -263,10 +272,12 @@
 		bookmarks = bookmarks
 
 		await updateDb()
-		showBookmarkModal = false
+		document.getElementById('bookmarkModal')?.close();
+		showBookmarkModal = false;
 	}
 
 	function closeBookmarkModal(){
+		document.getElementById('bookmarkModal')?.close();
 		showBookmarkModal = false
 		index = -1
 	}
@@ -288,7 +299,7 @@
 	}
 
 </script>
-<div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
+<div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
             
 		
@@ -339,14 +350,14 @@
 		</div>
 		{/if}
 	</div>
-	<div class={"w-full bg-base-300 rounded-md overflow-y-auto flex flex-col grow " + (answer != "" || fetching ? "animate-pulse" : "")}>
+	<div class={" bg-base-300 rounded-md overflow-y-auto flex flex-col grow " + (answer != "" || fetching ? "animate-pulse" : "")}>
 		<div class="flex flex-col relative">
 			
 		{#if fetching}
 		<div class="toast toast-center toast-middle">
 			<div class="alert">
 				<div>
-					<button class="btn btn-square loading"></button>
+					<button class="btn btn-square loading loading-spinner"></button>
 				</div>
 			</div>
 		</div>
@@ -398,7 +409,7 @@
 
 	</div>
 	<form
-		class="flex w-full items-stretch rounded-md gap-4 bg-base-300 p-4"
+		class="flex items-stretch rounded-md gap-4 bg-base-300 p-4"
 		on:submit|preventDefault={() => handleSubmit()}
 	>
 		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={chatQuery} />

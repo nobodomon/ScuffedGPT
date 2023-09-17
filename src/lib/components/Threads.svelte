@@ -4,7 +4,7 @@
     import {threadsCollection,auth} from "../../firebase";
     import {getAuth} from "firebase/auth";
 
-    import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where, orderBy} from "firebase/firestore";
+    import {onSnapshot,getDocs, deleteDoc, setDoc, updateDoc, doc, addDoc, query, where, orderBy, or} from "firebase/firestore";
 
     import MdDeleteSweep from 'svelte-icons/md/MdDeleteSweep.svelte';
 	import { redirect } from "@sveltejs/kit"
@@ -25,10 +25,12 @@
         const auth = getAuth();
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                const q = query(threadsCollection, where("users", "==", auth.currentUser?.uid), orderBy("updatedOn", "desc"));
+                const q = query(threadsCollection, or(where('users', '==', auth.currentUser?.uid), where('users', 'array-contains', auth.currentUser?.uid)), orderBy("updatedOn", "desc"));
                 onSnapshot(q, (querySnapshot) => {
                     threads = [];
+                    console.log("threads", querySnapshot);
                     querySnapshot.forEach((doc) => {
+                        console.log("doc", doc);    
                         threads.push({
                             id: doc.id,
                             ...doc.data(),
@@ -54,10 +56,15 @@
     }
 
     async function deleteThread(threadId : any) {
-        await deleteDoc(doc(threadsCollection, threadId));
-        navigate("/", {
-            replace: true,
-        });
+        const toDelete = threads.find((thread) => thread.id === threadId);
+        if(toDelete.users.length > 1){
+            const newUsers = toDelete.users.filter((user : string) => user !== auth.currentUser?.uid);
+            await updateDoc(doc(threadsCollection, threadId), {
+                users: newUsers,
+            });
+        }else{
+            await deleteDoc(doc(threadsCollection, threadId));
+        }
     }
     
     function onDeleteAll(){
@@ -105,9 +112,30 @@
         <div class="divider"></div>
             {#each threads as thread}
                 <div class="w-full bordered flex items-center gap-1">
-                    <a class={"btn grow overflow-hidden bg-base-neutral"} href="{`/chat/${thread.id}`}">
-                        {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
-                    </a>
+                    
+                    {#if typeof thread.users == 'string'}
+                    
+                            
+                        <a class={"btn grow overflow-hidden bg-base-neutral"} href="{`/chat/${thread.id}`}">
+                            {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
+                        </a>
+                    {:else}
+                        {#if thread.users.length > 1}
+                            <div class="indicator grow">
+                                <span class="indicator-item badge badge-secondary">
+                                    Shared
+                                </span>
+                                <a class={"btn grow overflow-hidden bg-base-neutral"} href="{`/chat/${thread.id}`}">
+                                    {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
+                                </a>
+                            </div>
+                            {:else}
+                            
+                            <a class={"btn grow overflow-hidden bg-base-neutral"} href="{`/chat/${thread.id}`}">
+                                {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
+                            </a>
+                        {/if}
+                    {/if}
                     <button class="btn btn-ghost btn-square text-base-content" on:click|preventDefault={()=> deleteThread(thread.id)}>
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x stroke-base-content" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
