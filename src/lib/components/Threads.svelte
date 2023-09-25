@@ -57,6 +57,10 @@
 
     async function deleteThread(threadId : any) {
         const toDelete = threads.find((thread) => thread.id === threadId);
+        if(typeof toDelete.users == 'string'){
+            await deleteDoc(doc(threadsCollection, threadId));
+            return;
+        }
         if(toDelete.users.length > 1){
             const newUsers = toDelete.users.filter((user : string) => user !== auth.currentUser?.uid);
             await updateDoc(doc(threadsCollection, threadId), {
@@ -73,6 +77,21 @@
         onSnapshot(q, (querySnapshot) => {
             querySnapshot.forEach((doc) => {
                 deleteDoc(doc.ref);
+            });
+        });
+
+        const q2 = query(threadsCollection, where("users", "array-contains", auth.currentUser?.uid));
+        
+        onSnapshot(q2, (querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                if(doc.data().users.length > 1){
+                    const newUsers = doc.data().users.filter((user : string) => user !== auth.currentUser?.uid);
+                    updateDoc(doc.ref, {
+                        users: newUsers,
+                    });
+                }else{
+                    deleteDoc(doc.ref);
+                }
             });
         });
 
