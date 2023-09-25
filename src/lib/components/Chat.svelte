@@ -7,6 +7,7 @@
 	import MdSave from 'svelte-icons/md/MdSave.svelte'
 	import MdInfo from 'svelte-icons/md/MdInfo.svelte'
 	import type { ChatCompletionRequestMessage  } from 'openai'
+	import type {ChatMessageWrapper} from '$lib/ChatMessageWrapper'
 	import { SSE } from 'sse.js'
 
     import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp, query, increment, onSnapshot } from 'firebase/firestore'
@@ -23,7 +24,7 @@
 
     export let threadID = ""
 	let threadname = ""
-	let chatMessages: ChatCompletionRequestMessage[] = []
+	let chatMessages: ChatMessageWrapper[] = []
 	let bookmarks: any[] = []
 	let users: any[] = []
 	let loading: boolean = false
@@ -71,12 +72,23 @@
 		loading = true
 		inProgress = true
 
-
-		chatMessages = [...chatMessages, { role: 'user', content: chatQuery }]
+		const newPrompt = { 
+			role: 'user', 
+			content: chatQuery ,
+			name: auth.currentUser!!.displayName ?? undefined,
+			profilePic: auth.currentUser?.photoURL ?? undefined
+		}
+		chatMessages = [...chatMessages, newPrompt]
 
 		//Send last 3 of chatmessages
 
-		const gptPayload = chatMessages.slice(-3)
+		const gptPayload = structuredClone(chatMessages.slice(-3))
+
+		gptPayload.forEach((item)=>{
+			delete item.profilePic;
+			delete item.name
+		})
+		
 
 		const eventSource = new SSE('/api/chat', {
 			headers: {
@@ -101,7 +113,7 @@
 				if (e.data === '[DONE]') {
 					inProgress = false
 					console.log(e);
-					chatMessages = [...chatMessages, { role: 'assistant', content: answer }]
+					chatMessages = [...chatMessages, { role: 'assistant',name:'ScuffedGPT', content: answer }]
 
 					const ansToken = await getTokens(answer)
 
@@ -387,6 +399,8 @@
 				<ChatMessage 
 				type={message.role} 
 				message={message.content} 
+				profilePic={message.profilePic}
+				name= {message.name}
 				user= {auth.currentUser}
 				index = {index}
 				bookmarked = {bookmarks.find((item) => item.index == index) ? true : false}
@@ -397,6 +411,8 @@
 			<ChatMessage 
 				type="assistant" 
 				message={answer} 
+				name={'ScuffedGPT'}
+				profilePic={undefined}
 				loading={loading} 
 				user= {auth.currentUser}
 				index = {-1}
