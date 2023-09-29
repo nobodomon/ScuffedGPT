@@ -27,6 +27,7 @@
 	let chatMessages: ChatMessageWrapper[] = []
 	let bookmarks: any[] = []
 	let users: any[] = []
+	let errors: any[] = []
 	let loading: boolean = false
 	let inProgress: boolean = false
 
@@ -135,7 +136,6 @@
 					answer = (answer ?? '') + delta.content
 				}
 			} catch (err) {
-				inProgress = false
 				handleError(err)
 			}
 		})
@@ -145,9 +145,15 @@
 
 	function handleError<T>(err: T) {
 		loading = false
+		inProgress = false
 		chatQuery = ''
 		answer = ''
 		console.error(err)
+		errors = [...errors, err]
+	}
+
+	function dismissError(index: number) {
+		errors = errors.filter((_, i) => i !== index)
 	}
 
     async function updateDb(){
@@ -364,15 +370,12 @@
 	</div>
 	<div class={" bg-base-300 rounded-md overflow-y-auto flex flex-col grow " + (answer != "" || fetching ? "animate-pulse" : "")}>
 		<div class="flex flex-col relative">
-			
+		
 		{#if fetching}
-		<div class="toast toast-center toast-middle">
-			<div class="alert">
-				<div>
-					<button class="btn btn-square loading loading-spinner"></button>
-				</div>
+			<div class="p-4 flex flex-col items-center justify-center">
+				
+				<span class="loading loading-spinner loading-lg"></span>
 			</div>
-		</div>
 		{:else}
 			{#if threadID == ""}
 			<div class="p-4 flex gap-4">
@@ -442,4 +445,16 @@
 	<TextRecognition showModal={showTextRecognition} image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt}/>
 
 	<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
+	<div class="toast toast-top toast-center">
+		{#each errors as error, index}
+			<div class="alert alert-error">
+				There was problem with the request. Please try again.
+				<button class="btn btn-circle btn-xs btn-ghost" on:click={()=>{dismissError(index)}}>
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-6 h-6">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+				  </button>
+			</div>
+		{/each}
+	</div>
 </div>
