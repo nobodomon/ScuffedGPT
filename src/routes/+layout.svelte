@@ -100,7 +100,7 @@
 
 <div class={"drawer h-[100svh] max-h-[100svh] lg:drawer-open"}>
 	<input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
-	<div class="drawer-content w-full items-center flex flex-col relative">
+	<div class="drawer-content max-w-[100svw] w-full items-center flex flex-col relative">
 		<div class="w-full navbar bg-base-100 gap-4">
 			<div class="flex-none">
 				<label for="my-drawer-2">
@@ -151,7 +151,7 @@
 	</div>
 	<div class="drawer-side shadow-lg">
 		<label for="my-drawer-2" class="drawer-overlay" />
-		<ul class="menu w-80 min-h-full bg-base-300 text-base-content gap-4 overflow-visible">
+		<ul class="menu w-80 min-h-full bg-base-300 text-base-content gap-4 overflow-visible z-[100] relative">
 			<!-- Sidebar content here -->
 
 			{#if loggedIn}

@@ -53,7 +53,7 @@
 		{:else}
 			<div class="chat-header font-bold">ScuffedGPT</div>
 		{/if}
-		<div class="w-full flex-col items-center prose">
+		<div class="w-full flex-col items-center overflow-x-auto isolate">
 			<SvelteMarkdown source={message}  renderers={{
 				code: CodeBlock
 			}} />

@@ -204,6 +204,7 @@
 			systemMessage = doc.data()!!.systemMessage ? doc.data()!!.systemMessage : ""
 			fetching = false
 
+			scrollToBottom()
 		});
 	}
 
