@@ -395,7 +395,7 @@
 				  
 				  <select bind:value={model} class="select shrink">
 					<option selected value={'gpt-3.5-turbo'}>GPT 3.5</option>
-					<option value={'gpt-4'}>GPT 4</option>
+					<option value={'gpt-4-1106-preview'}>GPT 4-Turbo</option>
 				  </select>
 			</div>
 			{/if}
