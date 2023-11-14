@@ -83,7 +83,7 @@
 
 		//Send last 3 of chatmessages
 
-		const gptPayload = structuredClone(chatMessages.slice(-3))
+		const gptPayload = structuredClone(chatMessages.slice(-9))
 
 		gptPayload.forEach((item)=>{
 			delete item.profilePic;
@@ -394,7 +394,7 @@
 				  </div>
 				  
 				  <select bind:value={model} class="select shrink">
-					<option selected value={'gpt-3.5-turbo'}>GPT 3.5</option>
+					<option selected value={'gpt-3.5-turbo-1106'}>GPT 3.5 Turbo</option>
 					<option value={'gpt-4-1106-preview'}>GPT 4-Turbo</option>
 				  </select>
 			</div>
