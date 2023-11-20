@@ -57,9 +57,13 @@ export const POST: RequestHandler = async ({ request }) => {
 		const prompt = systemMessage || 'You are a virtual assistant to replace ChatGPT when it is down. Your name is ScuffedGPT.'
 		tokenCount += getTokens(prompt)
 
-		if (tokenCount >= 4000) {
-			throw new Error('Query too large')
+		console.log(tokenCount)
+		
+		while (tokenCount > 16000) {
+			reqMessages.shift()
+			tokenCount -= getTokens(reqMessages[0].content)
 		}
+
 
 		const messages: ChatCompletionRequestMessage[] = [
 			{ role: 'system', content: prompt },
@@ -93,6 +97,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 		})
 	} catch (err) {
+		console.log(err)
 		//console.log(err instanceof Error ? err.message : err)
 		return json({ error: 'There was an error processing your request' }, { status: 500 })
 	}
