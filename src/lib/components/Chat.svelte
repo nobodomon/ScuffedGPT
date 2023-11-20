@@ -99,7 +99,8 @@
 				messages: gptPayload, 
 				systemMessage: systemMessage,
 				model: model
-			})
+			}),
+			method: 'POST'
 		})
 
 		const promptToken = getTokens(chatQuery)
