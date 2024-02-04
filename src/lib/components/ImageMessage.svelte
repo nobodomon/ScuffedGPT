@@ -6,12 +6,9 @@
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
 	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
 	import SvelteMarkdown from 'svelte-markdown'
-	import { auth } from '../../firebase'
 	
 	export let type: ChatCompletionRequestMessageRoleEnum
-	export let message: string
-	export let profilePic: string | undefined
-	export let name : string | undefined
+	export let message: any
 	export let loading = false
 	export let user: any
 	export let index : number
@@ -35,8 +32,8 @@
 	<div class="chat-image avatar self-start">
 		<div class="sm:w-8 w-0 rounded-full">
 			{#if type === "user"}
-				{#if profilePic}
-				<img src={profilePic ?? auth.currentUser?.photoURL} alt="user avatar" /> 
+				{#if user.photoURL}
+				<img src={user.photoURL} alt="user avatar" /> 
 				{:else}
 				<img src={"https://ui-avatars.com/api/?name=" + user.email[0]} alt="user avatar" />
 				{/if}
@@ -45,18 +42,21 @@
 			{/if}
 		</div>
 	</div>
+	
 	<div class="w-full flex flex-col text-base-content md:max-w-screen-lg max-w-full gap-4 overflow-x-hidden">
-			{#if type == 'user'}	
-			<div class="chat-header font-bold">
-				{name ?? auth.currentUser?.displayName}
-			</div>
-		{:else}
-			<div class="chat-header font-bold">ScuffedGPT</div>
-		{/if}
-		<div class="w-full flex-col items-center overflow-x-auto isolate">
-			<SvelteMarkdown source={message}  renderers={{
-				code: CodeBlock
-			}} />
+		<div class="w-full flex-col items-center prose">
+			{#if typeof message === "string"}
+                {message}
+            {:else}
+            <div class="grid gap-4 grid-cols-2 p-4 bg-neutral rounded-box max-w-fit">
+                
+                {#each message as image, index}
+                    <div class="rounded-box">
+                        <img src={image.url?? ""} alt="" class="rounded-box max-w-[256px]" />
+                    </div> 
+                {/each}
+            </div>
+            {/if}
 			{#if loading}
 				<progress class="progress progress-primary w-full"></progress>
 			{/if}
@@ -70,9 +70,7 @@
 					<MdBookmarkBorder />
 				{/if}
 			</button>
-			<div class="btn btn-ghost btn-xs">
-				{(type == "user" ? "Prompt ":"Completion ")  + getTokens(message) + " tokens"}
-			</div>
+			
 		</div>
 	</div>
 </div>
