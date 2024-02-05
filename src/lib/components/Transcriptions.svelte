@@ -8,7 +8,6 @@
     import {onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where, orderBy} from "firebase/firestore";
 	import type { ChatCompletionRequestMessage } from "openai"
 	import { toSeconds } from "../../utils"
-	import { navigate } from "svelte-navigator"
 
     const dispatch = createEventDispatcher();
     
@@ -39,9 +38,9 @@
 
     async function deleteTranscription(transcriptionId : any) {
         await deleteDoc(doc(transcriptionsCollection, transcriptionId));
-        navigate("/", {
-            replace: true,
-        });
+        // navigate("/", {
+        //     replace: true,
+        // });
     }
 
 

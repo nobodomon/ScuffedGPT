@@ -1,6 +1,5 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
-    import {navigate} from "svelte-navigator";
     import {imageThreadsCollection,auth} from "../../firebase";
     import {getAuth} from "firebase/auth";
 
@@ -55,9 +54,9 @@
 
     async function deleteThread(threadId : any) {
         await deleteDoc(doc(imageThreadsCollection, threadId));
-        navigate("/", {
-            replace: true,
-        });
+        // navigate("/", {
+        //     replace: true,
+        // });
     }
     
     function onDeleteAll(){

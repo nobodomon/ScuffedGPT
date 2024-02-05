@@ -60,7 +60,6 @@
 		"plantuml-encoder": "^1.4.0",
 		"sse.js": "^0.6.1",
 		"svelte-icons": "^2.1.0",
-		"svelte-navigator": "^3.2.2",
 		"tesseract.js": "^4.0.2",
 		"theme-change": "^2.5.0",
 		"ulidx": "^2.2.1"

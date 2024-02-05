@@ -1,6 +1,5 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
-    import {navigate} from "svelte-navigator";
     import {threadsCollection,auth} from "../../firebase";
     import {getAuth} from "firebase/auth";
 
