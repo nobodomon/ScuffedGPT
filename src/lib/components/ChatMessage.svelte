@@ -60,7 +60,7 @@
 			{#if imageReference}
 				<div class="flex gap-4 mt-4">
 					{#each imageReference as image}
-					<img src={image.url} alt={image.name} class="w-24 h-24 rounded-md" />
+					<img src={image.url} alt={image.name} class="w-24 h-24 rounded-md object-contain" />
 				{/each}
 				</div>
 			{/if}

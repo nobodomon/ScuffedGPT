@@ -540,7 +540,7 @@
 			{#each imageReferences as reference, index}
 				<div class="relative">
 					{#if reference.type != 'pdf'}
-						<img src={reference.url} alt={reference.name} class="rounded-lg w-24 h-24 object-cover"/>
+						<img src={reference.url} alt={reference.name} class="rounded-lg w-24 h-24 object-contain"/>
 					{:else}
 						<div class="rounded-lg w-24 h-24 object-cover flex-col flex items-center justify-center">
 							<div class="w-10">

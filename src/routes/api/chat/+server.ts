@@ -148,7 +148,7 @@ export const POST = (async ({ request }) => {
 			model: model,
 			messages: payloadMessage,
 			stream: true,
-			max_tokens: tokenLimit,
+			max_tokens: model === 'gpt-4-vision-preview' ? 4096 : tokenLimit,
 		})
 
 		const stream = OpenAIStream(chatResponse);
