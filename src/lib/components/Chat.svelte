@@ -304,37 +304,73 @@
 
 	}
 
-	function handleInput(e: any){
+	async function handleInput(e: any){
 		if(e.key == "Enter" && !e.shiftKey && !$isLoading){
 			e.preventDefault();
-			handleSubmitWrapper(e);
+			await handleSubmitWrapper(e);
 		}
 
-		$input = e.target.value
+		$input = e.target.value;
 	}
 
 	const handleSubmitWrapper = async (e: any) => {
 
-		if(imageReferences.length > 0){
 
-			chatMessages = [...chatMessages, { role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, imageReference: imageReferences, id: threadID }]
+		if(model == "gpt-4-vision-preview"){
+
 
 			let payload = chatMessages.slice(-9);
 
 			$messages = payload;
 
-			await handleSubmit(e, )
+			chatMessages = [...chatMessages, { role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, id: threadID, imageReference: imageReferences }]
+			await append({ role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, id: threadID },{
+				options:{
+					body:{
+						imageReferences: imageReferences,
+						model: model,
+						systemMessage: systemMessage
+					}
+				}
+			
+			})
+			
+
+			// await handleSubmit(e, {
+			// 	data: {
+			// 		imageReferences: JSON.stringify(imageReferences),
+			// 		model: model,
+			// 		systemMessage: systemMessage
+			// 	}
+			// })
 
 			$input = ""
 
 		}else{
 
-			chatMessages = [...chatMessages, { role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, id: threadID }]
 			let payload = chatMessages.slice(-9);
 
 			$messages = payload;
 
-			await handleSubmit(e)
+			chatMessages = [...chatMessages, { role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, id: threadID }]
+			await append({ role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, id: threadID },{
+				options:{
+					body:{
+						imageReferences: imageReferences,
+						model: model,
+						systemMessage: systemMessage
+					}
+				}
+			})
+
+
+			// await handleSubmit(e, {
+			// 	data: {
+			// 		imageReferences: JSON.stringify(imageReferences),
+			// 		model: model,
+			// 		systemMessage: systemMessage
+			// 	}
+			// })
 
 			$input = ""
 		}
@@ -472,6 +508,7 @@
 				type={message.role} 
 				message={message.content} 
 				profilePic={message?.profilePic}
+				imageReference={message?.imageReference}
 				name= {message.name}
 				user= {auth.currentUser}
 				index = {index}
@@ -482,9 +519,10 @@
 			{#if $isLoading}
 				<ChatMessage 
 					type="assistant" 
-					message={$messages[$messages.length - 1]?.content ?? ""} 
+					message={$isLoading ? "Loading..." : $messages[$messages.length - 1]?.content ?? ""} 
 					name={'ScuffedGPT'}
 					profilePic={undefined}
+					imageReference={undefined}
 					loading={$isLoading} 
 					user= {auth.currentUser}
 					index = {-1}
@@ -533,7 +571,7 @@
 				</div>
 			</div>
 				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+				<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box">
 				{#each imageList as image, index}
 					<li class="flex items-center gap-2">
 						<div>

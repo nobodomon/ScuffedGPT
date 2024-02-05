@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getTokens } from '$lib/tokenizer'
-	import type { ChatCompletionRequestMessageRoleEnum } from 'openai'
 	import { createEventDispatcher, each, escape } from 'svelte/internal'
 	import CodeBlock from './CodeBlock.svelte';
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
@@ -8,7 +7,7 @@
 	import SvelteMarkdown from 'svelte-markdown'
 	import { auth } from '../../firebase'
 	
-	export let type: ChatCompletionRequestMessageRoleEnum
+	export let type: string
 	export let message: string
 	export let profilePic: string | undefined
 	export let name : string | undefined
@@ -16,6 +15,7 @@
 	export let user: any
 	export let index : number
 	export let bookmarked : boolean
+	export let imageReference : any[] | undefined
 
 	const dispatch = createEventDispatcher();
 
@@ -57,6 +57,13 @@
 			<SvelteMarkdown source={message}  renderers={{
 				code: CodeBlock
 			}} />
+			{#if imageReference}
+				<div class="flex gap-4 mt-4">
+					{#each imageReference as image}
+					<img src={image.url} alt={image.name} class="w-24 h-24 rounded-md" />
+				{/each}
+				</div>
+			{/if}
 			{#if loading}
 				<progress class="progress progress-primary w-full"></progress>
 			{/if}

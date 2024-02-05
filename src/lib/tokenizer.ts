@@ -9,8 +9,13 @@ const GPT3Tokenizer: typeof GPT3TokenizerImport =
 const tokenizer = new GPT3Tokenizer({ type: 'gpt3' })
 
 export function getTokens(input: string): number {
-	const tokens = tokenizer.encode(input)
-	return tokens.text.length
+	try{
+		const tokens = tokenizer.encode(input)
+		return tokens.text.length
+	}catch(e){
+		throw new Error('Error in getTokens: ' + e)
+		return 0
+	}
 }
 
 export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[]){

@@ -13,7 +13,7 @@ export const config: Config = {
 	runtime: 'edge'
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST = (async ({ request }) => {
 	try {
 		if (!OPENAI_KEY) {
 			throw new Error('OPENAI_KEY env variable not set')
@@ -26,8 +26,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		//console.log(await request.json());
 
-		const {messages, data, model, systemMessage, imageReferences} = await request.json()
+		let {messages, data, model, systemMessage, imageReferences} = await request.json();
 
+
+		//console.log(await request.json());
 
 
 		console.log('messages', messages);
@@ -35,7 +37,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		console.log('model', model);
 		console.log('systemMessage', systemMessage);
 		console.log('imageReferences', imageReferences);
-
+		
 
 		if (!messages) {
 			throw new Error('no messages provided')
@@ -43,52 +45,58 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		let tokenCount = 0
 
-		if(imageReferences.length > 0) {
-
-			const lastMessage = messages[messages.length - 1]
-			let imageContent = imageReferences.map((image:any) => {
-				return {type: 'image_url', url: image.url}
+		console.log("L48", "Transforming input")
+		if(model === 'gpt-4-vision-preview'){
+			messages.forEach((msg: any, index: number) => {
+				if(index == messages.length - 1){
+					const newContent = []
+					newContent.push({type: 'text', text: msg.content})
+	
+					if(imageReferences.length > 0) {
+						for(const image of imageReferences) {
+							newContent.push({type: 'image_url', image_url: image.url})
+						}
+					}
+					messages[index] = {
+						role: msg.role,
+						content: newContent
+					}
+				}else{
+					const newContent = [];
+	
+					newContent.push({type: 'text', text: msg.content})
+	
+					if(msg.imageReference) {
+						for(const image of msg.imageReference) {
+							newContent.push({type: 'image_url', image_url: image.url})
+						}
+					}
+	
+					messages[index] = {
+						role: msg.role,
+						content: newContent
+					}
+				}
 			})
-			let newContent= {
-				role: lastMessage.role,
-				content: [
-					{type: 'text', text: lastMessage.content},
-					...imageContent
-				],
-			}
-
-			messages[messages.length - 1] = newContent
-
-			console.log(messages[messages.length - 1])
 		}
 
+		console.log("L79", "Calculating Total Tokens")
 		messages.forEach((msg: any) => {
-			const tokens = getTokens(msg.content)
-			tokenCount += tokens
+			console.log("L81", msg)
+			if(model === 'gpt-4-vision-preview'){
+				const tokens = getTokens(msg.content.find((content: any) => content.type === 'text').text)
+				tokenCount += tokens
+			}else{
+				
+				const tokens = getTokens(msg.content)
+				tokenCount += tokens
+			}
 		})
-
-		// const moderationRes = await fetch('https://api.openai.com/v1/moderations', {
-		// 	headers: {
-		// 		'Content-Type': 'application/json',
-		// 		Authorization: `Bearer ${OPENAI_KEY}`
-		// 	},
-		// 	method: 'POST',
-		// 	body: JSON.stringify({
-		// 		input: reqMessages[reqMessages.length - 1].content
-		// 	})
-		// })
-
-		//const moderationData = await moderationRes.json()
-		// const [results] = moderationData.results
-
-		// if (results.flagged) {
-		// 	throw new Error('Query flagged by openai')
-		// }
 
 		const prompt = (systemMessage || 'You are a virtual assistant to replace ChatGPT when it is down. Your name is ScuffedGPT.')
 		tokenCount += getTokens(prompt)
 
-		console.log(tokenCount)
+		//console.log(tokenCount)
 
 		let tokenLimit = 0;
 
@@ -107,45 +115,26 @@ export const POST: RequestHandler = async ({ request }) => {
 				break
 		}
 		
+		console.log("L113", "Trimming excess tokens")
 		while (tokenCount > tokenLimit) {
 			messages.shift()
-			tokenCount -= getTokens(messages[0].content)
+			if(model === 'gpt-4-vision-preview'){
+				tokenCount -= getTokens(messages[0].content.find((content: any) => content.type === 'text').text)
+			}else{
+				
+				tokenCount -= getTokens(messages[0].content)
+			}
 		}
 
 
 		const payloadMessage  = [
-			{ role: 'system', content: prompt },
+			{ role: 'system', content: imageReferences.length > 0 ? [
+				{type: 'text', text: prompt},
+			] : prompt },
 			...messages
 		]
 
-		// const chatRequestOpts: any = {
-		// 	model: model,
-		// 	messages,
-		// 	temperature: 0.9,
-		// 	stream: true
-		// }
-
-		// const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-		// 	headers: {
-		// 		Authorization: `Bearer ${OPENAI_KEY}`,
-		// 		'Content-Type': 'application/json'
-		// 	},
-		// 	method: 'POST',
-		// 	body: JSON.stringify(chatRequestOpts)
-		// })
-
-
-		// if (!chatResponse.ok) {
-		// 	const err = await chatResponse.json()
-		// 	console.log(err)
-		// 	throw new Error(err)
-		// }
-
-		// return new Response(chatResponse.body, {
-		// 	headers: {
-		// 		'Content-Type': 'text/event-stream'
-		// 	}
-		// })
+		//console.log("L121",payloadMessage)
 
 		for(const message of payloadMessage) {
 			delete message.name
@@ -155,60 +144,26 @@ export const POST: RequestHandler = async ({ request }) => {
 			delete message.imageReference
 		}
 
-		// const chatResponse = await openai.chat.completions.create({
-		// 	model: model,
-		// 	messages: payloadMessage,
-		// 	stream: true
+		const chatResponse = await openai.chat.completions.create({
+			model: model,
+			messages: payloadMessage,
+			stream: true
 
-		// })
-
-
-		// for await (const chunk of chatResponse) {
-		// 	console.log(chunk)
-		// 	// return {
-		// 	// 	body: chunk.choices[0]?.delta?.content,
-		// 	// 	headers: {
-		// 	// 		'Content-Type': 'text/event-stream'
-		// 	// 	},
-		// 	// 	status: 200
-		// 	// }
-
-		// 	// return new Response(chunk.choices[0]?.delta?.content, {
-		// 	// 	headers: {
-		// 	// 		'Content-Type': 'text/event-stream'
-		// 	// 	}
-		// 	// })
-
-		// 	console.log(chunk.choices[0]?.delta?.content)
-
-		// 	process.stdout.write(chunk.choices[0]?.delta?.content || '')
-		// }
-
-		// let response = ""
-
-		// for await (const chunk of chatResponse) {
-		// 	console.log(chunk)
-		// 	response += chunk.choices[0]?.delta?.content || ''
-		// }
-		
-		// return new Response(
-		// 	response,
-		// 	{
-		// 		headers: {
-		// 			'Content-Type': 'text/event-stream'
-		// 		}
-		// 	}
-		// )
+		})
 
 		const stream = OpenAIStream(chatResponse);
 
 		return new StreamingTextResponse(stream);
 		
 
-	} catch (err: OpenAIError | any) {
+	}
+	catch (err: OpenAIError | any) {
 		console.log(JSON.stringify(err))
 		console.error(err.error)
-		const error = err.error.message ?? 'There was an error processing your request'
+		const error = err.error?.message ?? 'There was an error processing your request'
 		return json({ error: error }, { status: 500 })
+	} finally {
+		//console.log('finally')
+	
 	}
-}
+}) satisfies RequestHandler
