@@ -12,7 +12,7 @@ export async function updateTokenUsed(token: any, model: any, params: any){
         case "whisper-1":
             await updateWhisperTokenUsed(token, params);
             break;
-        case "gpt-3.5-turbo":
+        case "gpt-3.5-turbo-1106":
             await updateGPT35TurboTokenUsed(token, params);
             break;
         case "gpt-4-turbo-preview":
