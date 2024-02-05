@@ -80,7 +80,9 @@
 		api: '/api/chat',
 		onResponse: async (response) => {
 			//answer = lastmessage.content
+			$input = ""
 			console.log($messages);
+			scrollToBottom();
 		},
 		onFinish: async () => {
 			const lastmessage = $messages[$messages.length - 1];
@@ -315,16 +317,18 @@
 
 	const handleSubmitWrapper = async (e: any) => {
 
+		let prompt = $input;
 
 		if(model == "gpt-4-vision-preview"){
-
 
 			let payload = chatMessages.slice(-9);
 
 			$messages = payload;
 
-			chatMessages = [...chatMessages, { role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, id: threadID, imageReference: imageReferences }]
-			await append({ role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, id: threadID },{
+
+			chatMessages = [...chatMessages, { role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: prompt, id: threadID, imageReference: imageReferences }]
+			scrollToBottom();
+			await append({ role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: prompt, id: threadID },{
 				options:{
 					body:{
 						imageReferences: imageReferences,
@@ -352,8 +356,9 @@
 
 			$messages = payload;
 
-			chatMessages = [...chatMessages, { role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, id: threadID }]
-			await append({ role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: $input, id: threadID },{
+			chatMessages = [...chatMessages, { role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: prompt, id: threadID }]
+			scrollToBottom();
+			await append({ role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: prompt, id: threadID },{
 				options:{
 					body:{
 						imageReferences: imageReferences,
@@ -519,7 +524,7 @@
 			{#if $isLoading}
 				<ChatMessage 
 					type="assistant" 
-					message={$isLoading ? "Loading..." : $messages[$messages.length - 1]?.content ?? ""} 
+					message={$messages[$messages.length - 1]?.content == $input ? "Loading..." : $messages[$messages.length - 1]?.content ?? ""} 
 					name={'ScuffedGPT'}
 					profilePic={undefined}
 					imageReference={undefined}
@@ -597,8 +602,8 @@
 	  	</div>
 		{/if}
 		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={$input} />
-		{#if inProgress}
-			<button type="submit" class="btn btn-primary btn-square loading" disabled>
+		{#if $isLoading}
+			<button type="submit" class={`btn btn-primary btn-square loading ${$isLoading ? "disabled" : ""}`} disabled>
 			</button>
 		{:else if $input == ""}
 			<button type="submit" class="btn btn-primary" disabled>Send</button>
