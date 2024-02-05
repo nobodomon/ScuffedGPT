@@ -573,8 +573,8 @@
 				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 				<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box">
 				{#each imageList as image, index}
-					<li class="flex items-center gap-2">
-						<div>
+					<li class="flex items-stretch gap-2">
+						<div class="w-full flex">
 							<button on:click={
 								(e)=>{
 									addFileReference(image)
