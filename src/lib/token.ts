@@ -15,8 +15,11 @@ export async function updateTokenUsed(token: any, model: any, params: any){
         case "gpt-3.5-turbo":
             await updateGPT35TurboTokenUsed(token, params);
             break;
-        case "gpt-4":
+        case "gpt-4-turbo-preview":
             await updateGPT4TokenUsed(token, params);
+            break;
+        case "gpt-4-vision-preview":
+            await updateGPT4VisionTokenUsed(token, params);
             break;
         case "DALL-E":
             await updateImageTokenUsed(token, params);
@@ -52,6 +55,16 @@ const updateGPT4TokenUsed = async (token: GPT4Token, params: any) => {
         gpt4PromptTokensUsed: increment(token.prompt),
         gpt4AnswerTokensUsed: increment(token.answer)
     }, {merge: true})
+}
+
+const updateGPT4VisionTokenUsed = async (token: any, params: any) => {
+    const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
+    await setDoc(userRef, {
+        gpt4VisionPromptTokensUsed: increment(token.prompt),
+        gpt4VisionAnswerTokensUsed: increment(token.answer),
+        
+    }, {merge: true})
+
 }
 
 const updateImageTokenUsed = async (token: any, params: any) => {

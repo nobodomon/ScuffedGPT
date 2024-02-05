@@ -93,7 +93,7 @@
 			await updateTokenUsed({
 				prompt: input,
 				answer: ansToken,
-			},model, undefined);
+			},model, imageReferences);
 			scrollToBottom()
 		},
 		onError: (err) => {
