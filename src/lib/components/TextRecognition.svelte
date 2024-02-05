@@ -74,6 +74,7 @@
         const randomFileID = ulid();
         console.log(file.name);
         const extension = file.name.split('.').pop();
+        //const fileNameNoExt = file.name.split('.').slice(0, -1).join('.');
         const newFileName = `${randomFileID}-${file.name}`;
         const fileRef = ref(storage,'threadImages/' + `${newFileName}`);
 

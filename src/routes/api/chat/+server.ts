@@ -54,7 +54,10 @@ export const POST = (async ({ request }) => {
 	
 					if(imageReferences.length > 0) {
 						for(const image of imageReferences) {
-							newContent.push({type: 'image_url', image_url: image.url})
+							newContent.push({type: 'image_url', image_url: {
+								url: image.url,
+								detail: "auto"
+							}})
 						}
 					}
 					messages[index] = {
@@ -66,11 +69,14 @@ export const POST = (async ({ request }) => {
 	
 					newContent.push({type: 'text', text: msg.content})
 	
-					if(msg.imageReference) {
-						for(const image of msg.imageReference) {
-							newContent.push({type: 'image_url', image_url: image.url})
-						}
-					}
+					// if(msg.imageReference) {
+					// 	for(const image of msg.imageReference) {
+					// 		newContent.push({type: 'image_url', image_url: {
+					// 			url: image.url,
+					// 			detail: "high"
+					// 		}})
+					// 	}
+					// }
 	
 					messages[index] = {
 						role: msg.role,
@@ -158,7 +164,7 @@ export const POST = (async ({ request }) => {
 	catch (err: OpenAIError | any) {
 		console.log(JSON.stringify(err))
 		console.error(err.error)
-		const error = err.error?.message ?? 'There was an error processing your request'
+		const error = err?.message ?? err?.error?.message?? 'There was an error processing your request'
 		return json({ error: error }, { status: 500 })
 	} finally {
 		//console.log('finally')
