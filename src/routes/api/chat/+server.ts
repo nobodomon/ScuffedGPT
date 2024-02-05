@@ -147,15 +147,13 @@ export const POST = (async ({ request }) => {
 		const chatResponse = await openai.chat.completions.create({
 			model: model,
 			messages: payloadMessage,
-			stream: true
-
+			stream: true,
+			max_tokens: tokenLimit,
 		})
 
 		const stream = OpenAIStream(chatResponse);
 
 		return new StreamingTextResponse(stream);
-		
-
 	}
 	catch (err: OpenAIError | any) {
 		console.log(JSON.stringify(err))
