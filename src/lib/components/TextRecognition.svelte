@@ -127,7 +127,7 @@
                     {#await read(image)}
                         <progress class="progress progress-primary" value={progress * 100} max="100"></progress>
                     {:then reader}
-                        <img src={reader.result} alt={image.name} class="rounded-lg w-full h-64 object-cover"/>
+                        <img src={reader.result} alt={image.name} class="rounded-lg w-full h-64 object-contain"/>
                     {/await}
                 {:else}
                     <div class="flex items-center justify-center w-full h-64 bg-base-200 rounded-lg">
@@ -160,7 +160,14 @@
         {/if}
         <div class="modal-action">
             <button class="btn btn-ghost text-base-content" on:click={closeModal}>Close</button>
-            <button class="btn btn-primary" disabled={!allowImageInput} on:click={useAsImage}>Use As Image</button>
+            {#if allowImageInput}
+            
+                <button class="btn btn-primary" disabled={!allowImageInput} on:click={useAsImage}>Use As Image</button>
+            {:else}
+                <div class="tooltip" data-tip="You can only use this as image if you use the GPT 4 Vision Model">
+                    <button class="btn btn-primary" disabled={!allowImageInput} on:click={useAsImage}>Use As Image</button>
+                </div>
+            {/if}
             <button class="btn btn-primary" disabled={loading} on:click={useAsPrompt}>Use as prompt using OCR</button>
         </div>
     </div>
