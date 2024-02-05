@@ -74,7 +74,7 @@
         const randomFileID = ulid();
         console.log(file.name);
         const extension = file.name.split('.').pop();
-        const newFileName = `${randomFileID}-${file.name}.${extension}`;
+        const newFileName = `${randomFileID}-${file.name}`;
         const fileRef = ref(storage,'threadImages/' + `${newFileName}`);
 
         const uploadTask = uploadBytesResumable(fileRef, file);

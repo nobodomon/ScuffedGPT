@@ -8,6 +8,7 @@
 
     import MdDeleteSweep from 'svelte-icons/md/MdDeleteSweep.svelte';
 	import { redirect } from "@sveltejs/kit"
+	import { deleteObject, getStorage, ref } from "@firebase/storage"
 
     const dispatch = createEventDispatcher();
     
@@ -66,6 +67,12 @@
             });
         }else{
             await deleteDoc(doc(threadsCollection, threadId));
+            for(let i = 0; i < toDelete.imageList.length; i++){
+                const image = toDelete.imageList[i];
+                const storage = getStorage();
+                const storageRef = ref(storage, `threadImages/${image.newname}`);
+                await deleteObject(storageRef);
+            }
         }
     }
     
