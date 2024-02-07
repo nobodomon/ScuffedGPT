@@ -6,12 +6,15 @@
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
 	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
 	import SvelteMarkdown from 'svelte-markdown'
+	import moment from 'moment'
 	
 	export let type: ChatCompletionRequestMessageRoleEnum
 	export let message: any
 	export let user: any
 	export let index : number
 	export let bookmarked : boolean
+	export let expiry : string
+	export let size : string
 
 	const dispatch = createEventDispatcher();
 
@@ -21,6 +24,29 @@
 		})
 	}
 
+	const getHeight = (dimension:string) => {
+		const height = dimension.split("x")[1]
+		return (256/ parseInt(height) * parseInt(height));
+	}
+
+	const getWidth = (dimension:string) => {
+		const width = dimension.split("x")[0]
+		return (256/ parseInt(width) * parseInt(width));
+	}
+
+	const isExpired = (expiry:string) => {
+		return moment(new Date(parseInt(expiry) * 1000).toLocaleString()).add(1,'hour').isBefore(moment());
+	}
+
+	const getExpiresIn = (expiry:string) => {
+		return moment(new Date(parseInt(expiry) * 1000).toLocaleString()).add(1,'hour').fromNow();
+	}
+
+	const revisePrompt = (prompt) => {
+		dispatch("revisePrompt", {
+			prompt : prompt
+		})
+	}
 
 </script>
 
@@ -52,17 +78,47 @@
                 
                 <div class="flex flex-col items-stretch w-full gap-4 p-4">
 					{#each message as image, index}
-						<div class="rounded-box flex w-full justify-between">
-							<img src={image.url?? ""} alt="" class={`rounded-box max-w-[256px]`} />
-							<span class="text-xs text-primary">{image.revised_prompt?? ""}</span>
+						<div class="rounded-box flex w-full justify-between gap-4">
+							{#if isExpired(expiry) || expiry == undefined}
+								<div class="rounded-box min-w-[256px] h-[256px] flex items-center justify-center bg-base-200">
+									<span class="text-xs font-bold text-error">Image Expired</span>
+								</div>
+							{:else}
+								<img src={image.url?? ""} alt="" class={`rounded-box min-w-[${getWidth(size)}px] min-h-[${getHeight(size)}px] bg-base-200`} />
+							{/if}
+
+							{#if image.revised_prompt}
+								<div class="flex flex-col items-start justify-start gap-4">
+									<span class="text-xs text-primary">{image.revised_prompt?? ""}</span>
+
+									<button class="btn btn-primary" on:click={(e)=>{
+										revisePrompt(image.revised_prompt)
+									}}>
+										Use Suggested Prompt
+									</button>
+								</div>
+							{/if}
 						</div> 
 					{/each}
+					
+					<span></span>
 				</div>
             </div>
             {/if}
 			
 		</div>
 		<div class="self-end items-center flex gap-4">
+			{#if typeof message !== 'string'}
+				{#if isExpired(expiry) || expiry == undefined}
+				<div class="badge badge-error">
+					Image Expired
+				</div>
+				{:else}
+				<div class="badge badge-primary">
+					Image(s) Expires {getExpiresIn(expiry)}
+				</div>
+				{/if}
+			{/if}
 			<button class="btn btn-ghost btn-xs btn-square" on:click={bookmarkMessage}>
 				{#if bookmarked}
 					<MdBookmark />

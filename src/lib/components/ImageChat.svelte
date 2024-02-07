@@ -97,7 +97,8 @@
 			size: size,
 			n: n,
 			quality: quality,
-			data: undefined
+			data: undefined,
+			created: undefined
 		}
 
 		prompt = ""
@@ -117,6 +118,7 @@
 		console.log(eventSource);
 
 		result['data'] = eventSource.data
+		result['created'] = eventSource.created
 
 		console.log(result);
 
@@ -251,13 +253,22 @@
 		return bookmarks.sort((a: any, b: any) => a.index > b.index)
 	}
 
-	function getImagesCost(results: any){
-		const images = getTotalImageCost(results);
+	function getImagesCost(results: any, model: string){
+		const images = getTotalImageCost(results, model);
 		let total = 0;
 
 		total += images["s_count"] * 0.016;
 		total += images["m_count"] * 0.018;
 		total += images["l_count"] * 0.02;
+
+		total += images["dall_e_3_standard_square"] * 0.04;
+		total += images["dall_e_3_hd_square"] * 0.08;
+
+		total += images["dall_e_3_standard_landscape"] * 0.08;
+		total += images["dall_e_3_hd_landscape"] * 0.12;
+
+		total += images["dall_e_3_standard_portrait"] * 0.08;
+		total += images["dall_e_3_hd_portrait"] * 0.12;
 
 		return total;
 	}
@@ -303,7 +314,7 @@
 			<input type="checkbox" />
 			<div class="btn btn-accent break-keep swap-off">
 				
-				${getImagesCost(results)}
+				${getImagesCost(results, model)}
 			</div>
 			<div class="btn btn-accent break-keep swap-on">
 				<!-- ${(getTotalTokens(chatMessages)/1000 * 0.0015).toFixed(4)} -->
@@ -358,7 +369,12 @@
 				user= {auth.currentUser}
 				index = {index}
 				bookmarked = {bookmarks.find((item) => item.index == index) ? true : false}
+				expiry = {message.created}
+				size = {message.size}
 				on:bookmark={updateBookmark}
+				on:revisePrompt={(message) => {
+					prompt = message.detail.prompt
+				}}
 				/>
 			{/each}
 
