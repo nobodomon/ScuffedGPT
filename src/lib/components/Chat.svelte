@@ -34,7 +34,7 @@
 
 	let fetching: boolean = false
 
-	let model: string = 'gpt-3.5-turbo-1106'
+	let model: string = 'gpt-3.5-turbo-0125'
 	let systemMessage: string = ''
 	let chatQuery: string = ''
 
@@ -507,7 +507,7 @@
 				  </div>
 				  
 				  <select bind:value={model} class="select shrink">
-					<option selected value={'gpt-3.5-turbo-1106'}>GPT 3.5 Turbo</option>
+					<option selected value={'gpt-3.5-turbo-0125'}>GPT 3.5 Turbo</option>
 					<option value={'gpt-4-turbo-preview'}>GPT 4 Turbo</option>
 					<option value={'gpt-4-vision-preview'}>GPT 4 Vision</option>
 				  </select>

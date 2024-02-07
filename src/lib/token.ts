@@ -1,6 +1,7 @@
 
 import { getFirestore, addDoc, setDoc, doc, getDoc,increment } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
+import moment from 'moment';
 
 let firestore = getFirestore()
 let auth = getAuth()
@@ -12,7 +13,7 @@ export async function updateTokenUsed(token: any, model: any, params: any){
         case "whisper-1":
             await updateWhisperTokenUsed(token, params);
             break;
-        case "gpt-3.5-turbo-1106":
+        case "gpt-3.5-turbo-0125":
             await updateGPT35TurboTokenUsed(token, params);
             break;
         case "gpt-4-turbo-preview":
@@ -34,16 +35,17 @@ export async function updateTokenUsed(token: any, model: any, params: any){
 const updateWhisperTokenUsed = async (token: [number], params: any) => {
     const aggregatedToken = token.reduce((a: number, b: number) => a + b, 0);
 
-    const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
+    const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));
     await setDoc(userRef, {
         transcriptionTime: increment(aggregatedToken)
     }, {merge: true})
 }
 
 const updateGPT35TurboTokenUsed = async (token: GPT4Token, params: any) => {
-    const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
+    const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));
     await setDoc(userRef, {
-        tokensUsed: increment(token.prompt + token.answer)
+        gpt3PromptTokensUsed: increment(token.prompt),
+        gpt3AnswerTokensUsed: increment(token.answer)
     }, {merge: true})
 }
 
@@ -53,7 +55,7 @@ interface GPT4Token {
 }
 
 const updateGPT4TokenUsed = async (token: GPT4Token, params: any) => {
-    const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
+    const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));
     await setDoc(userRef, {
         gpt4PromptTokensUsed: increment(token.prompt),
         gpt4AnswerTokensUsed: increment(token.answer)
@@ -61,7 +63,7 @@ const updateGPT4TokenUsed = async (token: GPT4Token, params: any) => {
 }
 
 const updateGPT4VisionTokenUsed = async (token: any, params: any) => {
-    const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
+    const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));
     await setDoc(userRef, {
         gpt4PromptTokensUsed: increment(token.prompt),
         gpt4AnswerTokensUsed: increment(token.answer),
@@ -71,7 +73,7 @@ const updateGPT4VisionTokenUsed = async (token: any, params: any) => {
 }
 
 const updateImageTokenUsed = async (token: any, params: any) => {
-    const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
+    const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));
     switch(params.size) {
         case "256x256": 
             await setDoc(userRef, {
@@ -98,7 +100,7 @@ const updateImageTokenUsed = async (token: any, params: any) => {
 }
 
 const updateDalle3TokenUsed = async (token: any, params: any) => {
-    const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
+    const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));
     switch(params.size) {
         case "1024x1024": 
             if(params.quality === "standard"){

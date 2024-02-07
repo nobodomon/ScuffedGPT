@@ -105,6 +105,16 @@
         });
     }
     
+    const getShortName = (model: string) => {
+        switch(model){
+            case "gpt-3.5-turbo-1106":
+                return "GPT-3.5";
+            case "gpt-4-turbo-preview":
+                return "GPT-4";
+            case "gpt-4-vision-preview":
+                return "GPT-4 Vision";
+        }
+    }
 
 </script>
 
@@ -143,24 +153,22 @@
                             {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
                         </a>
                     {:else}
+                    <div class="indicator grow">
                         {#if thread.users.length > 1}
-                            <div class="indicator grow">
-                                <span class="indicator-item badge badge-secondary">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-                                    </svg>
-                                  
-                                </span>
-                                <a class={"btn grow overflow-hidden bg-base-neutral"} href="{`/chat/${thread.id}`}">
-                                    {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
-                                </a>
-                            </div>
-                            {:else}
-                            
-                            <a class={"btn grow overflow-hidden bg-base-neutral"} href="{`/chat/${thread.id}`}">
-                                {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
-                            </a>
+                        <span class="indicator-item badge badge-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                            </svg>
+                        </span>
                         {/if}
+
+                        <span class="indicator-item indicator-top indicator-center badge badge-primary">
+                            {getShortName(thread.model)}
+                        </span>
+                        <a class={"btn grow overflow-hidden bg-base-neutral"} href="{`/chat/${thread.id}`}">
+                            {thread.name  == "" ? "Unnamed Thread" : transform(thread.name)}
+                        </a>
+                    </div>
                     {/if}
                     <button class="btn btn-ghost btn-square text-base-content" on:click|preventDefault={()=> deleteThread(thread.id)}>
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x stroke-base-content" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="" fill="none" stroke-linecap="round" stroke-linejoin="round">

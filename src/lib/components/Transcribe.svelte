@@ -93,59 +93,72 @@
     }
 
     const handleSubmit = async () => {
-        loading= true
         let processingOutput = ''
         let processingSegment : any[] = []
         let processingDuration : any[] = []
+        try{
+            loading= true
+
+            
+
+            for await(const file of files.accepted){
+                processing = files.accepted.indexOf(file) + 1
+                const formData = new FormData();
+
+                await uploadToStorage(file, async (downloadURL: string, originalFileName: string, fileType: string, newFileName: string) => {
+                    
+                    console.log(downloadURL, originalFileName, fileType, newFileName);
+
+                    try{
+                        formData.append('file', downloadURL)
+                        formData.append('fileType', fileType)
+                        formData.append('originalFileName', originalFileName)
+                        formData.append('newFileName', newFileName)
+                        formData.append('language', language)
+                        
+
+
+                        const eventSource = await fetch('/api/whisper',{
+                        method: 'POST',
+                            body: formData
+                        }).then(res => res.json())
+
+                        console.log(eventSource);
+
+                        processingSegment = processingSegment.concat(eventSource.segments)
+                        processingOutput = processingOutput.concat(eventSource.text, "\n")
+                        processingDuration = processingDuration.concat(eventSource.duration)
+                    }catch(e){
+                        console.log(e)
+                    }finally{
+                        
+                        await deleteFromStorage(newFileName);
+                    }
+                })
+            }
+
+            console.log(processingDuration)
 
         
+        }catch(e){
+            console.log(e);
+            loading = false; 
+            return;
+        }finally{
+            await updateTokenUsed(processingDuration, 'whisper-1',undefined);
+            loading = false
+            processing = 0
+            output = processingOutput
+            segments = processingSegment
+            files.accepted = []
+            transcriptionId = "temp"
+            durations = processingDuration
 
-        for await(const file of files.accepted){
-            processing = files.accepted.indexOf(file) + 1
-            const formData = new FormData();
-
-            await uploadToStorage(file, async (downloadURL: string, originalFileName: string, fileType: string, newFileName: string) => {
-                formData.append('file', downloadURL)
-                formData.append('fileType', fileType)
-                formData.append('originalFileName', originalFileName)
-                formData.append('newFileName', newFileName)
-                formData.append('language', language)
-                
-
-                try{
-                    const eventSource = await fetch('/api/whisper',{
-                    method: 'POST',
-                        body: formData
-                    }).then(res => res.json())
-
-                    console.log(eventSource);
-
-                    processingSegment = processingSegment.concat(eventSource.segments)
-                    processingOutput = processingOutput.concat(eventSource.text, "\n")
-                    processingDuration = processingDuration.concat(eventSource.duration)
-                }catch(e){
-                    console.log(e)
-                }finally{
-                    
-                    await deleteFromStorage(newFileName)
-                }
+            await saveTranscription();
+            dispatch("newTranscription",{
+                duration: durations.reduce((a: any, b: any) => a + b, 0)
             })
         }
-
-        console.log(processingDuration)
-
-        await updateTokenUsed(processingDuration, 'whisper-1',undefined);
-        loading = false
-        processing = 0
-        output = processingOutput
-        segments = processingSegment
-        files.accepted = []
-        transcriptionId = "temp"
-        durations = processingDuration
-
-        dispatch("newTranscription",{
-            duration: durations.reduce((a: any, b: any) => a + b, 0)
-        })
     }
 
     const uploadToStorage = async (file: File, callback: Function) => {
@@ -160,7 +173,7 @@
 
             const uploadTask = uploadBytesResumable(fileRef, file);
 
-            return uploadTask.on('state_changed', (snapshot) => {
+            return uploadTask.on('state_changed', (snapshot: { bytesTransferred: number; totalBytes: number; state: any }) => {
                 const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                 uploadProgress = progress;
                 uploadStarted = true;
@@ -173,13 +186,13 @@
                         console.log('Upload is running');
                         break;
                 }
-            }, (error) => {
+            }, (error: any) => {
                 console.log(error);
                 reject();
             },() => {
                 // Handle successful uploads on complete
                 uploadStarted = false;
-                getDownloadURL(uploadTask.snapshot.ref).then( async  (downloadURL) => {
+                getDownloadURL(uploadTask.snapshot.ref).then( async  (downloadURL: any) => {
                     console.log('File available at', downloadURL);
                     
                     await callback(downloadURL, file.name, extension, newFileName);
@@ -190,14 +203,18 @@
     }
 
     const deleteFromStorage = async (newFileName: string) => {
-        const storage = getStorage();
-		const fileRef = ref(storage, 'transcriptionTempStore/' + `${newFileName}`);
-		
-		deleteObject(fileRef).then(() => {
-			console.log('File deleted successfully');
-		}).catch((error) => {
-			console.error('Error removing file: ', error);
-		});
+        return new Promise<void>(async (resolve, reject)=>{
+            const storage = getStorage();
+            const fileRef = ref(getStorage(), 'transcriptionTempStore/' + `${newFileName}`);
+            
+            deleteObject(fileRef).then(() => {
+                console.log('File deleted successfully');
+                resolve();
+            }).catch((error:any) => {
+                console.error('Error removing file: ', error);
+                reject();
+            });
+        })
     }
 
     function findLanguageCode(e: any) {
@@ -228,14 +245,14 @@
                 user: auth.currentUser?.uid,
                 name: transcriptionName,
                 durations: durations
-            }).then((docRef) => {
+            }).then((docRef: { id: string }) => {
                 //console.log("Document written with ID: ", docRef.id);
                 transcriptionId = docRef.id
                 dispatch("transcriptionNew",{
                     id: docRef.id
                 })
             })
-            .catch((error) => {
+            .catch((error: any) => {
                 console.error("Error adding document: ", error);
             });
             
@@ -249,7 +266,7 @@
             resetVariables()
             return;
         }
-        getDoc(doc(firestore, "Transcriptions", transcriptionId)).then((doc) => {
+        getDoc(doc(firestore, "Transcriptions", transcriptionId)).then((doc: { exists: () => any; data: () => any }) => {
             if (doc.exists()) {
                 segments = doc.data()!!.segments
                 output = doc.data()!!.text
@@ -262,7 +279,7 @@
                 resetVariables()
                 fetching = false
             }
-        }).catch((error) => {
+        }).catch((error: any) => {
             //console.log("Error getting document:", error);
         });
     }

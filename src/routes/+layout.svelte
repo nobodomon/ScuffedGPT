@@ -7,20 +7,15 @@
 	import Threads from '$lib/components/Threads.svelte'
 	import ImageThreads from '$lib/components/ImageThreads.svelte'
 	//import Chat from '$lib/components/Chat.svelte'
-	import type { ChatCompletionRequestMessage } from 'openai'
-
-	import {getFirestore, onSnapshot,getDocs, deleteDoc, setDoc, doc, addDoc, query, where, increment, updateDoc, orderBy} from "firebase/firestore";
+	import {getFirestore, onSnapshot, doc} from "firebase/firestore";
 	import Transcriptions from '$lib/components/Transcriptions.svelte'
 	import { onMount } from 'svelte'
 	import { themeChange } from 'theme-change'
-	import { getTokensFromAllThreads, getTotalTokens } from '$lib/tokenizer'
 	import { toSeconds } from '../utils'
+	import moment from 'moment'
 
 	let loggedIn: boolean = false
 	let uid = ''
-	let user = {}
-	let allThreads : ChatCompletionRequestMessage[] = []
-	let allTranscriptions : any[] = []
 
 	let usedTokens = 0;
 	let gpt4PromptTokensUsed = 0;
@@ -50,7 +45,7 @@
 			user = user
 			loggedIn = true
 
-			const userTokens = doc(firestore, "Users", uid);
+			const userTokens = doc(firestore, "Users", uid, "Usage", moment().format("YYYY-MM"));
 
 			onSnapshot(userTokens, (doc) => {
 				if(doc.exists()){
@@ -66,9 +61,9 @@
 					dalle3_standard_landscape_count = doc.data()["1792x1024-dalle-3"]? doc.data()["1792x1024-dalle-3"] : 0
 					dalle3_standard_portrait_count = doc.data()["1024x1792-dalle-3"]? doc.data()["1024x1792-dalle-3"] : 0
 
-					dalle3_hd_square_count = doc.data()["1792x1024-dalle-3"]? doc.data()["1024x1024-dalle-3-hd"] : 0
-					dalle3_hd_landscape_count = doc.data()["1792x1024HD-dalle-3"]? doc.data()["1792x1024-dalle-3-hd"] : 0
-					dalle3_hd_portrait_count = doc.data()["1024x1792HD-dalle-3"]? doc.data()["1024x1792-dalle-3-hd"] : 0
+					dalle3_hd_square_count = doc.data()["1024x1024-dalle-3-hd"]? doc.data()["1024x1024-dalle-3-hd"] : 0
+					dalle3_hd_landscape_count = doc.data()["1792x1024-dalle-3-hd"]? doc.data()["1792x1024-dalle-3-hd"] : 0
+					dalle3_hd_portrait_count = doc.data()["1024x1792-dalle-3-hd"]? doc.data()["1024x1792-dalle-3-hd"] : 0
 				
 					totalCost = calculateTotalCost();
 				}
@@ -100,12 +95,33 @@
 	function calculateTotalCost(){
 		const durationCost = (totalDuration/60 * 0.006).toFixed(4);
 		const tokenCost = (usedTokens/1000 * 0.0015).toFixed(4);
-		const gpt4TokensCost = ((gpt4PromptTokensUsed/1000 * 0.003) + (gpt4AnswerTokensUsed/1000 * 0.006)).toFixed(4);
+		const gpt4TokensCost = ((gpt4PromptTokensUsed/1000 * 0.01) + (gpt4AnswerTokensUsed/1000 * 0.03)).toFixed(4);
 		const s_cost = (s_count * 0.016).toFixed(4);
 		const m_cost = (m_count * 0.018).toFixed(4);
 		const l_cost = (l_count * 0.02).toFixed(4);
+
+		const dalle3_standard_square_cost = (dalle3_standard_square_count * 0.04).toFixed(4);
+		const dalle3_standard_landscape_cost = (dalle3_standard_landscape_count * 0.08).toFixed(4);
+		const dalle3_standard_portrait_cost = (dalle3_standard_portrait_count * 0.08).toFixed(4);
 		
-		let total = (parseFloat(durationCost) + parseFloat(tokenCost) + parseFloat(gpt4TokensCost) + parseFloat(s_cost) + parseFloat(m_cost) + parseFloat(l_cost)).toFixed(4);
+		const dalle3_hd_square_cost = (dalle3_hd_square_count * 0.08).toFixed(4);
+		const dalle3_hd_landscape_cost = (dalle3_hd_landscape_count * 0.12).toFixed(4);
+		const dalle3_hd_portrait_cost = (dalle3_hd_portrait_count * 0.12).toFixed(4);
+		
+		let total = (
+			parseFloat(durationCost) + 
+			parseFloat(tokenCost) + 
+			parseFloat(gpt4TokensCost) + 
+			parseFloat(s_cost) + 
+			parseFloat(m_cost) + 
+			parseFloat(l_cost) + 
+			parseFloat(dalle3_standard_square_cost) +
+			parseFloat(dalle3_standard_landscape_cost) +
+			parseFloat(dalle3_standard_portrait_cost) +
+			parseFloat(dalle3_hd_square_cost) +
+			parseFloat(dalle3_hd_landscape_cost) +
+			parseFloat(dalle3_hd_portrait_cost)
+		).toFixed(4);
 		return total;
 	}
 </script>
@@ -176,7 +192,7 @@
 					<input type="checkbox" class="peer" /> 
 					<div class="collapse-title text-primary-content">
 						<div class="col-span-2 flex flex-col gap-4">
-							<h1 class="text-sm text-secondary font-bold">Total estimated cost</h1>
+							<h1 class="text-sm text-secondary font-bold">Total estimated cost this month</h1>
 							<h1 class="text-sm font-bold text-base-content">{totalCost} USD</h1>
 							<h1 class="text-sm text-accent font-bold">Click here for usage breakdown</h1>
 						</div>
@@ -223,6 +239,8 @@
 							<h1 class="text-sm ">{(dalle3_hd_landscape_count * 0.12).toFixed(4)} USD</h1>
 							<h1 class="text-sm ">{dalle3_hd_portrait_count} x 1024x1792</h1>
 							<h1 class="text-sm ">{(dalle3_hd_portrait_count * 0.12).toFixed(4)} USD</h1>
+
+							<a class="btn btn-primary w-full col-span-2" href={'/usage'}>View Total Usage</a>
 						</div>
 					</div>
 				  </div>
