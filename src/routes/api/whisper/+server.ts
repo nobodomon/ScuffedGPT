@@ -29,8 +29,6 @@ export const POST: RequestHandler = async ({ request }) => {
         const readFile = await fetch(reqFile)
         const fileBlob = await readFile.blob()
 
-        console.log(fileBlob)
-
         const reqLanguage = requestData.get('language') as string
         // const transcribeResponse = await fetch("https://api.openai.com/v1/audio/transcriptions",{
         //     headers: {
@@ -41,7 +39,6 @@ export const POST: RequestHandler = async ({ request }) => {
         // })
         const fileObj = new File([fileBlob], originalFileName, {type: fileBlob.type})
         
-        console.log(fileObj)
         const transcribeResponse = await openai.audio.transcriptions.create(
             {
                 file: fileObj,
