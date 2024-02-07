@@ -6,35 +6,33 @@
 	import MdStop from 'svelte-icons/md/MdStop.svelte'
 	import MdSave from 'svelte-icons/md/MdSave.svelte'
 	import MdInfo from 'svelte-icons/md/MdInfo.svelte'
-	import type { ChatCompletionRequestMessage  } from 'openai'
-	import { SSE } from 'sse.js'
 
     import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp, query, increment } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {imageThreadsCollection} from "../../firebase"
-	import { updated } from '$app/stores'
 
 	import {createEventDispatcher} from 'svelte';
-	import { onMount } from 'svelte'
 	import { getTokens, getTotalImageCost, getTotalTokens } from '$lib/tokenizer'
-	import TextRecognition from './TextRecognition.svelte'
-	import { parse } from 'postcss'
 	import ImageMessage from './ImageMessage.svelte'
 	import { updateTokenUsed } from '$lib/token'
+
+	import {useChat} from 'ai/svelte'
 
     export let threadID = ""
 	let threadname = ""
 
+
 	let results : any[] = []
 
+	let model = "dall-e-2"
+	let quality = "standard"
     let prompt = ""
     let n = "1"
     let size = "256x256"
 
 	let bookmarks: any[] = []
 	let loading: boolean = false
-	let inProgress: boolean = false
 
 	let fetching: boolean = false
 
@@ -47,6 +45,8 @@
     let firestore = getFirestore()
     let auth = getAuth()
 	let scrollToDiv: HTMLDivElement
+
+	let errors: any[] = []
 
 	let image: File
 	let index: number = -1
@@ -73,14 +73,11 @@
 
 	const handleSubmit = async () => {
 		if(prompt.trim() === "") return
-		if(inProgress) return
+		if(loading) return
 		loading = true
-		inProgress = true
 
 		results = [...results,{
 			data: prompt,
-			size: size,
-			n: n,
 			role: "user"
 		}]
 
@@ -91,30 +88,52 @@
 		formData.append('prompt', prompt);
 		formData.append('n', n);
 		formData.append('size', size);
+		formData.append('model', model);
+		formData.append('quality', quality);
+
+
+		const result = {
+			role: 'assistant',
+			size: size,
+			n: n,
+			quality: quality,
+			data: undefined
+		}
+
+		prompt = ""
 
         const eventSource = await fetch('/api/dalle',{
             method: 'POST',
             body: formData
-        }).then(res => res.json())
+        }).then(response =>{
+			return response.json()
+		})
 
+		if(eventSource.error){
+			handleError(eventSource.error)
+			return
+		}
 
 		console.log(eventSource);
 
-		
+		result['data'] = eventSource.data
 
-		eventSource['role'] = "ai"
+		console.log(result);
 
-		results = [...results, eventSource]
+		results = [...results, result]
+
 
 
         await updateDb();
 
-		await updateTokenUsed(parseInt(n), 'DALL-E', size)
+		await updateTokenUsed(parseInt(n), model, {
+			quality: quality,
+			size: size
+		})
+		
 
-		n = "1";
-        size = "256x256";
-		prompt = ""
-        
+		loading = false
+
 		scrollToBottom()
 	}
 
@@ -122,6 +141,11 @@
 		loading = false
 		answer = ''
 		console.error(err)
+		errors = [...errors, err]
+	}
+
+	function dismissError(index: number) {
+		errors = errors.filter((_, i) => i !== index)
 	}
 
     async function updateDb(){
@@ -133,6 +157,7 @@
 				bookmarks: bookmarks,
 				createdOn: serverTimestamp(),
 				updatedOn: serverTimestamp(),
+				model: model,
             },{merge: true})
         }else{
             await addDoc(imageThreadsCollection, {
@@ -141,6 +166,7 @@
                 users: auth.currentUser!!.uid,
 				bookmarks: bookmarks,
 				updatedOn: serverTimestamp(),
+				model: model,
             }).then((docRef) => {
                 threadID = docRef.id
 
@@ -158,65 +184,21 @@
 				threadname = doc.data()!!.name
 				results = doc.data()!!.results
 				bookmarks = doc.data()!!.bookmarks ? doc.data()!!.bookmarks.sort((a:any,b: any)=> a.index > b.index) : []
-				systemMessage = doc.data()!!.systemMessage ? doc.data()!!.systemMessage : ""
+				systemMessage = doc.data()!!.systemMessage ? doc.data()!!.systemMessage : "",
+				model= doc.data()!!.model ? doc.data()!!.model : "dall-e-2",
 				fetching = false
+
+				if(model == "dall-e-2"){
+					size = "256x256"
+				}
+
+				if(model == "dall-e-3"){
+					size = "1024x1024"
+				}
 			}
 		}).catch((error) => {
 			console.log("Error getting document:", error);
 		});
-	}
-
-	async function detectImg(e: ClipboardEvent){
-		if (e.clipboardData) {
-			const items = e.clipboardData.items;
-			if (items) {
-			let file: File | null = null;
-			for (let i = 0; i < items.length; i++) {
-				if (items[i].type.indexOf('image') !== -1) {
-				// Image is pasted, handle it here
-				file = items[i].getAsFile();
-				console.log(file)
-				await read(file).then((reader) => {
-					image = reader.result
-					showTextRecognition = true
-				})
-				}
-			}
-			}
-			// If items array does not exist, check for files array
-			else {
-			const files = e.clipboardData.files;
-			if (files.length > 0) {
-				// Files are pasted, check if an image is present and handle it accordingly
-				const imageFile = Array.from(files).find((file) => file.type.indexOf('image') !== -1);
-				if (imageFile) {
-				// Image is pasted, handle it here
-				await read(imageFile).then((reader) => {
-					image = reader.result
-					showTextRecognition = true
-				})
-				}
-			}
-			}
-		}
-	}
-
-	async function read (file: any) {
-        return new Promise<any>((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = () => resolve(reader)
-            reader.onerror = reject
-            reader.readAsDataURL(file)
-        })
-    }
-
-	function closeModal(){
-		showTextRecognition = false
-	}
-
-	function appendPrompt(e: any){
-		prompt = prompt + e.detail.text
-		showTextRecognition = false
 	}
 
 	function handleInput(e: any){
@@ -280,23 +262,37 @@
 		return total;
 	}
 
+	const onChangeModel = (e: any) => {
+		model = e.target.value
+
+		if(model == "dall-e-2"){
+			size = "256x256"
+		}
+		
+		if(model == "dall-e-3"){
+			size = "1024x1024"
+		}
+
+		return;
+	}
+
 </script>
 <div class="flex flex-col w-full px-4 pb-4 items-center gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
             
 		
 		<div class="form-control grow shadow-inner">
-			<div class="input-group">
+			<div class="join w-full">
 			  <input 
 				type="text" 
 				placeholder="Unnamed thread" 
-				class="input w-full text-base-content"
+				class="input w-full text-base-content join-item"
 				bind:value={threadname}
 				/>
 			  <button class="btn btn-secondary" on:click={async ()=>{
 				await updateDb()
 			  }}>
-			  <div class="w-5">
+			  <div class="w-5 join-item">
 				<MdSave />
 			</div>	
 			  </button>
@@ -346,6 +342,15 @@
 		</div>
 		{:else}
 			
+			{#if threadID == ""}
+			<div class="p-4 flex gap-4">
+				
+				<select bind:value={model} class="select shrink" on:change={onChangeModel}>
+					<option selected value={'dall-e-2'}>Dall-E 2</option>
+					<option value={'dall-e-3'}>Dall-E 3</option>
+				</select>
+			</div>
+			{/if}
 			{#each results as message, index}
 				<ImageMessage 
 				type={message.role} 
@@ -356,6 +361,12 @@
 				on:bookmark={updateBookmark}
 				/>
 			{/each}
+
+			{#if loading}
+				<div class="p-4 flex gap-4">
+					<progress class="progress progress-primary w-full"></progress>
+				</div>
+			{/if}
 			<!-- {#if message.data.length > 0}
 			<ChatMessage 
 				type="assistant" 
@@ -376,25 +387,42 @@
 			<label class="label">
 			  <span class="label-text">Number of images?</span>
 			</label>
-			<input type="number" min="1" max="10" placeholder="Number of images" bind:value={n} class="input input-bordered input-primary w-full max-w-xs" />
+			<input type="number" min="1" disabled={model == 'dall-e-3'} max={
+				model == 'dall-e-2' ? '10' : '1'
+			} placeholder="Number of images" bind:value={n} class="input input-bordered input-primary w-full max-w-xs" />
 		</div>
 		<div class="form-control w-full max-w-xs">
 			<label class="label">
 			  <span class="label-text">Image Size</span>
 			</label>
 			<select class="select select-bordered select-primary" bind:value={size}>
-			  <option value="256x256">256x256</option>
-			  <option value="512x512">512x512</option>
-			  <option value="1024x1024">1024x1024</option>
+				{#if model == "dall-e-2"}
+					<option value="256x256">256x256</option>
+					<option value="512x512">512x512</option>
+					<option value="1024x1024">1024x1024</option>
+				{:else}
+					<option value="1024x1024">1024x1024</option>
+					<option value="1792x1024">1792x1024</option>
+					<option value="1024x1792">1024x1792</option>
+				{/if}
 			</select>
-		  </div>
+		</div>
+		<div class="form-control w-full max-w-xs">
+			<label class="label">
+			  <span class="label-text">Quality</span>
+			</label>
+			<select class="select select-bordered select-primary" bind:value={quality}>
+				<option value="standard">Standard</option>
+				<option value="hd">HD</option>
+			</select>
+		</div>
 	</div>
 	<form
 		class="flex w-full items-stretch rounded-md gap-4 bg-base-300 p-4"
 		on:submit|preventDefault={() => handleSubmit()}
 	>
-		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={prompt} />
-		{#if inProgress}
+		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} bind:value={prompt} />
+		{#if loading}
 			<button type="submit" class="btn btn-primary btn-square loading" disabled>
 			</button>
 		{:else if prompt == ""}
@@ -405,4 +433,16 @@
 	</form>
 
 	<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
+	<div class="toast toast-top toast-center">
+		{#each errors as error, index}
+			<div class="alert alert-error">
+				There was problem with the request. Please try again.
+				<button class="btn btn-circle btn-xs btn-ghost" on:click={()=>{dismissError(index)}}>
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-6 h-6">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+				  </button>
+			</div>
+		{/each}
+	</div>
 </div>

@@ -21,8 +21,11 @@ export async function updateTokenUsed(token: any, model: any, params: any){
         case "gpt-4-vision-preview":
             await updateGPT4VisionTokenUsed(token, params);
             break;
-        case "DALL-E":
+        case "dall-e-2":
             await updateImageTokenUsed(token, params);
+            break;
+        case "dall-e-3":
+            await updateDalle3TokenUsed(token, params);
             break;
     }
 }
@@ -60,8 +63,8 @@ const updateGPT4TokenUsed = async (token: GPT4Token, params: any) => {
 const updateGPT4VisionTokenUsed = async (token: any, params: any) => {
     const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
     await setDoc(userRef, {
-        gpt4VisionPromptTokensUsed: increment(token.prompt),
-        gpt4VisionAnswerTokensUsed: increment(token.answer),
+        gpt4PromptTokensUsed: increment(token.prompt),
+        gpt4AnswerTokensUsed: increment(token.answer),
         
     }, {merge: true})
 
@@ -69,7 +72,7 @@ const updateGPT4VisionTokenUsed = async (token: any, params: any) => {
 
 const updateImageTokenUsed = async (token: any, params: any) => {
     const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
-    switch(params) {
+    switch(params.size) {
         case "256x256": 
             await setDoc(userRef, {
                 "256x256": increment(token)
@@ -86,6 +89,52 @@ const updateImageTokenUsed = async (token: any, params: any) => {
             await setDoc(userRef, {
                 "1024x1024": increment(token)
                 }, {merge: true})
+            break;
+
+        default:{
+            return;
+        }
+    }
+}
+
+const updateDalle3TokenUsed = async (token: any, params: any) => {
+    const userRef = doc(firestore, "Users", auth.currentUser!!.uid);
+    switch(params.size) {
+        case "1024x1024": 
+            if(params.quality === "standard"){
+                await setDoc(userRef, {
+                    "1024x1024-dalle-3": increment(token)
+                    }, {merge: true})
+                }
+            else{
+                await setDoc(userRef, {
+                    "1024x1024HD-dalle-3": increment(token)
+                    }, {merge: true})
+            }
+            break;
+        case "1792x1024":
+            if(params.quality === "standard"){
+                await setDoc(userRef, {
+                    "1792x1024-dalle-3": increment(token)
+                    }, {merge: true})
+                }
+            else{
+                await setDoc(userRef, {
+                    "1792x1024HD-dalle-3": increment(token)
+                    }, {merge: true})
+            }
+            break;
+        case "1024x1792":
+            if(params.quality === "standard"){
+                await setDoc(userRef, {
+                    "1024x1792-dalle-3": increment(token)
+                    }, {merge: true})
+                }
+            else{
+                await setDoc(userRef, {
+                    "1024x1792HD-dalle-3": increment(token)
+                    }, {merge: true})
+            }
             break;
 
         default:{

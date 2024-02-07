@@ -9,7 +9,6 @@
 	
 	export let type: ChatCompletionRequestMessageRoleEnum
 	export let message: any
-	export let loading = false
 	export let user: any
 	export let index : number
 	export let bookmarked : boolean
@@ -21,6 +20,7 @@
 			index : index,
 		})
 	}
+
 
 </script>
 
@@ -48,18 +48,18 @@
 			{#if typeof message === "string"}
                 {message}
             {:else}
-            <div class="grid gap-4 grid-cols-2 p-4 bg-neutral rounded-box max-w-fit">
+            <div class="flex flex-col p-4 rounded-box w-full">
                 
-                {#each message as image, index}
-                    <div class="rounded-box">
-                        <img src={image.url?? ""} alt="" class="rounded-box max-w-[256px]" />
-                    </div> 
-                {/each}
+                <div class="flex flex-col items-stretch w-full gap-4 p-4">
+					{#each message as image, index}
+						<div class="rounded-box flex w-full justify-between">
+							<img src={image.url?? ""} alt="" class={`rounded-box max-w-[256px]`} />
+							<span class="text-xs text-primary">{image.revised_prompt?? ""}</span>
+						</div> 
+					{/each}
+				</div>
             </div>
             {/if}
-			{#if loading}
-				<progress class="progress progress-primary w-full"></progress>
-			{/if}
 			
 		</div>
 		<div class="self-end items-center flex gap-4">
