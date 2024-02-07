@@ -192,6 +192,7 @@
             },() => {
                 // Handle successful uploads on complete
                 uploadStarted = false;
+                uploadProgress = 0;
                 getDownloadURL(uploadTask.snapshot.ref).then( async  (downloadURL: any) => {
                     console.log('File available at', downloadURL);
                     
@@ -312,9 +313,15 @@
     {#if loading}
     <div class="card w-96">
         <div class="card-body">
-            <h2 class="card-title">Transcribing...</h2>
-            File {processing} of {files.accepted.length}
-            <progress class="progress w-full" max={processing / files.accepted.length}></progress>
+            {#if uploadStarted}
+                <h2 class="card-title">Uploading...</h2>
+                File {processing} of {files.accepted.length}
+                <progress class="progress w-full" value={uploadProgress} max="100"></progress>
+            {:else}
+                <h2 class="card-title">Transcribing...</h2>
+                File {processing} of {files.accepted.length}
+                <progress class="progress w-full" max={processing / files.accepted.length}></progress>
+            {/if}
         </div>
     </div>
     {:else if output == ""}
