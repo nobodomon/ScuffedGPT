@@ -86,9 +86,9 @@ export const POST = (async ({ request }) => {
 			})
 		}
 
-		console.log("L79", "Calculating Total Tokens")
+		//console.log("L79", "Calculating Total Tokens")
 		messages.forEach((msg: any) => {
-			console.log("L81", msg)
+			//console.log("L81", msg)
 			if(model === 'gpt-4-vision-preview'){
 				const tokens = getTokens(msg.content.find((content: any) => content.type === 'text').text)
 				tokenCount += tokens
@@ -121,7 +121,7 @@ export const POST = (async ({ request }) => {
 				break
 		}
 		
-		console.log("L113", "Trimming excess tokens")
+		//console.log("L113", "Trimming excess tokens")
 		while (tokenCount > tokenLimit) {
 			messages.shift()
 			if(model === 'gpt-4-vision-preview'){
