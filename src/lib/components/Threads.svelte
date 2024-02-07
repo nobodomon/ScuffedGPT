@@ -107,7 +107,7 @@
     
     const getShortName = (model: string) => {
         switch(model){
-            case "gpt-3.5-turbo-1106":
+            case "gpt-3.5-turbo-0125":
                 return "GPT-3.5";
             case "gpt-4-turbo-preview":
                 return "GPT-4";
