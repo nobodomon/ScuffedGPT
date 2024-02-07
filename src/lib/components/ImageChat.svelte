@@ -1,23 +1,17 @@
 <script lang="ts">
-	import ChatMessage from '$lib/components/ChatMessage.svelte'
 	import BookmarkModal from '$lib/components/BookmarkModal.svelte'
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
-	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
-	import MdStop from 'svelte-icons/md/MdStop.svelte'
 	import MdSave from 'svelte-icons/md/MdSave.svelte'
-	import MdInfo from 'svelte-icons/md/MdInfo.svelte'
 
-    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp, query, increment } from 'firebase/firestore'
+    import { getFirestore, addDoc, setDoc, doc, getDoc, serverTimestamp} from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {imageThreadsCollection} from "../../firebase"
 
 	import {createEventDispatcher} from 'svelte';
-	import { getTokens, getTotalImageCost, getTotalTokens } from '$lib/tokenizer'
+	import { getTotalImageCost } from '$lib/tokenizer'
 	import ImageMessage from './ImageMessage.svelte'
 	import { updateTokenUsed } from '$lib/token'
-
-	import {useChat} from 'ai/svelte'
 
     export let threadID = ""
 	let threadname = ""

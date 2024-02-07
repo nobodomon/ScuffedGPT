@@ -12,6 +12,8 @@
     import MdAccessTime from 'svelte-icons/md/MdAccessTime.svelte'
     import MdAttachMoney from 'svelte-icons/md/MdAttachMoney.svelte'
 	import { updateTokenUsed } from '$lib/token'
+	import { deleteObject, getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
+	import { ulid } from 'ulidx'
 
     export let transcriptionId = ""
 
@@ -72,6 +74,9 @@
     
     let segments: any[] = []
 
+    let uploadProgress = 0
+    let uploadStarted = false
+
     const handleFileUpload = async (e: any) => {
         const {acceptedFiles, fileRejections} = e.detail;
         files.accepted = [...files.accepted, ...acceptedFiles];
@@ -92,23 +97,39 @@
         let processingOutput = ''
         let processingSegment : any[] = []
         let processingDuration : any[] = []
-        for(let i = 0; i < files.accepted.length; i++){
-            processing = i+1
+
+        
+
+        for await(const file of files.accepted){
+            processing = files.accepted.indexOf(file) + 1
             const formData = new FormData();
 
-            //console.log(files.accepted[i])
+            await uploadToStorage(file, async (downloadURL: string, originalFileName: string, fileType: string, newFileName: string) => {
+                formData.append('file', downloadURL)
+                formData.append('fileType', fileType)
+                formData.append('originalFileName', originalFileName)
+                formData.append('newFileName', newFileName)
+                formData.append('language', language)
+                
 
-            formData.append('file', files.accepted[i])
-            formData.append('language', language)
+                try{
+                    const eventSource = await fetch('/api/whisper',{
+                    method: 'POST',
+                        body: formData
+                    }).then(res => res.json())
 
-            const eventSource = await fetch('/api/whisper',{
-                method: 'POST',
-                body: formData
-            }).then(res => res.json())
+                    console.log(eventSource);
 
-            processingSegment = processingSegment.concat(eventSource.segments)
-            processingOutput = processingOutput.concat(eventSource.text, "\n")
-            processingDuration = processingDuration.concat(eventSource.duration)
+                    processingSegment = processingSegment.concat(eventSource.segments)
+                    processingOutput = processingOutput.concat(eventSource.text, "\n")
+                    processingDuration = processingDuration.concat(eventSource.duration)
+                }catch(e){
+                    console.log(e)
+                }finally{
+                    
+                    await deleteFromStorage(newFileName)
+                }
+            })
         }
 
         console.log(processingDuration)
@@ -125,6 +146,58 @@
         dispatch("newTranscription",{
             duration: durations.reduce((a: any, b: any) => a + b, 0)
         })
+    }
+
+    const uploadToStorage = async (file: File, callback: Function) => {
+        return new Promise<void>(async (resolve, reject)=>{
+            const storage = getStorage();
+            const randomFileID = ulid();
+            console.log(file.name);
+            const extension = file.name.split('.').pop();
+            //const fileNameNoExt = file.name.split('.').slice(0, -1).join('.');
+            const newFileName = `${randomFileID}-${file.name}`;
+            const fileRef = ref(storage,'transcriptionTempStore/' + `${newFileName}`);
+
+            const uploadTask = uploadBytesResumable(fileRef, file);
+
+            return uploadTask.on('state_changed', (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                uploadProgress = progress;
+                uploadStarted = true;
+                console.log('Upload is ' + progress + '% done');
+                switch (snapshot.state) {
+                    case 'paused':
+                        console.log('Upload is paused');
+                        break;
+                    case 'running':
+                        console.log('Upload is running');
+                        break;
+                }
+            }, (error) => {
+                console.log(error);
+                reject();
+            },() => {
+                // Handle successful uploads on complete
+                uploadStarted = false;
+                getDownloadURL(uploadTask.snapshot.ref).then( async  (downloadURL) => {
+                    console.log('File available at', downloadURL);
+                    
+                    await callback(downloadURL, file.name, extension, newFileName);
+                    resolve();
+                });
+            });
+        })
+    }
+
+    const deleteFromStorage = async (newFileName: string) => {
+        const storage = getStorage();
+		const fileRef = ref(storage, 'transcriptionTempStore/' + `${newFileName}`);
+		
+		deleteObject(fileRef).then(() => {
+			console.log('File deleted successfully');
+		}).catch((error) => {
+			console.error('Error removing file: ', error);
+		});
     }
 
     function findLanguageCode(e: any) {

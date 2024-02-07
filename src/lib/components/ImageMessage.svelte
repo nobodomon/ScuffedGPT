@@ -5,6 +5,7 @@
 	import CodeBlock from './CodeBlock.svelte';
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
 	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
+	import MdSave from 'svelte-icons/md/MdSave.svelte'
 	import SvelteMarkdown from 'svelte-markdown'
 	import moment from 'moment'
 	
@@ -42,11 +43,12 @@
 		return moment(new Date(parseInt(expiry) * 1000).toLocaleString()).add(1,'hour').fromNow();
 	}
 
-	const revisePrompt = (prompt) => {
+	const revisePrompt = (prompt:any) => {
 		dispatch("revisePrompt", {
 			prompt : prompt
 		})
 	}
+
 
 </script>
 
@@ -77,14 +79,14 @@
             <div class="flex flex-col p-4 rounded-box w-full">
                 
                 <div class="flex flex-col items-stretch w-full gap-4 p-4">
-					{#each message as image, index}
-						<div class="rounded-box flex w-full justify-between gap-4">
+					{#each message as image, imageIndex}
+						<div class="rounded-box flex w-full justify-between gap-4 relative">
 							{#if isExpired(expiry) || expiry == undefined}
 								<div class="rounded-box min-w-[256px] h-[256px] flex items-center justify-center bg-base-200">
 									<span class="text-xs font-bold text-error">Image Expired</span>
 								</div>
 							{:else}
-								<img src={image.url?? ""} alt="" class={`rounded-box min-w-[${getWidth(size)}px] min-h-[${getHeight(size)}px] bg-base-200`} />
+							<img src={image.url?? ""} alt="" class={`rounded-box min-w-[${getWidth(size)}px] min-h-[${getHeight(size)}px] bg-base-200`} />
 							{/if}
 
 							{#if image.revised_prompt}
@@ -98,6 +100,8 @@
 									</button>
 								</div>
 							{/if}
+
+							
 						</div> 
 					{/each}
 					
@@ -110,13 +114,13 @@
 		<div class="self-end items-center flex gap-4">
 			{#if typeof message !== 'string'}
 				{#if isExpired(expiry) || expiry == undefined}
-				<div class="badge badge-error">
-					Image Expired
-				</div>
+					<div class="badge badge-error">
+						Image Expired
+					</div>
 				{:else}
-				<div class="badge badge-primary">
-					Image(s) Expires {getExpiresIn(expiry)}
-				</div>
+					<div class="badge badge-primary">
+						Image(s) Expires {getExpiresIn(expiry)}
+					</div>
 				{/if}
 			{/if}
 			<button class="btn btn-ghost btn-xs btn-square" on:click={bookmarkMessage}>

@@ -33,12 +33,6 @@ export const POST: RequestHandler = async ({ request }) => {
         const size = requestData.get('size') as "256x256" | "512x512" | "1024x1024" | "1792x1024" | "1024x1792"
         const model = requestData.get('model') as "dall-e-2" | "dall-e-3"
         const quality = requestData.get('quality') as 'standard' | 'hd'
-
-        console.log('prompt', prompt)
-        console.log('n', n)
-        console.log('size', size)
-        console.log('model', model)
-        console.log('quality', quality)
         
 
         try {

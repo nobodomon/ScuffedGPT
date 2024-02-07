@@ -2,24 +2,19 @@
 	import ChatMessage from '$lib/components/ChatMessage.svelte'
 	import BookmarkModal from '$lib/components/BookmarkModal.svelte'
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
-	import MdBookmarkBorder from 'svelte-icons/md/MdBookmarkBorder.svelte'
-	import MdStop from 'svelte-icons/md/MdStop.svelte'
 	import MdSave from 'svelte-icons/md/MdSave.svelte'
 	import MdInfo from 'svelte-icons/md/MdInfo.svelte'
 	import MdAdd from 'svelte-icons/md/MdAdd.svelte'
 	import MdDelete from 'svelte-icons/md/MdDelete.svelte'
 	import MdPictureAsPdf from 'svelte-icons/md/MdPictureAsPdf.svelte'
 	import type {ChatMessageWrapper} from '$lib/ChatMessageWrapper'
-	import { SSE } from 'sse.js'
 
-    import { getFirestore, addDoc, setDoc, doc, getDoc, Timestamp, serverTimestamp, query, increment, onSnapshot } from 'firebase/firestore'
+    import { getFirestore, addDoc, setDoc, doc, serverTimestamp, onSnapshot } from 'firebase/firestore'
     import { getAuth } from 'firebase/auth'
 
     import {threadsCollection} from "../../firebase"
-	import { updated } from '$app/stores'
 
 	import {createEventDispatcher} from 'svelte';
-	import { onMount } from 'svelte'
 	import { getTokens, getTotalTokens } from '$lib/tokenizer'
 	import { updateTokenUsed } from '$lib/token'
 	import TextRecognition from './TextRecognition.svelte'
@@ -86,14 +81,18 @@
 		},
 		onFinish: async () => {
 			const lastmessage = $messages[$messages.length - 1];
+			const messageBeforeLast = $messages[$messages.length - 2];
 			
 			chatMessages = [...chatMessages, { role: 'assistant',name:'ScuffedGPT', content: lastmessage.content, id: threadID, profilePic: auth.currentUser!!.photoURL ?? undefined }]
-			const ansToken = await getTokens(answer)
+			const ansToken = await getTokens(lastmessage.content)
+			const promptToken = await getTokens(messageBeforeLast.content)
+			console.log(ansToken);
+			console.log(promptToken);
 			answer = ''
 			imageReferences = []
 			await updateDb();
 			await updateTokenUsed({
-				prompt: input,
+				prompt: promptToken,
 				answer: ansToken,
 			},model, imageReferences);
 			scrollToBottom()

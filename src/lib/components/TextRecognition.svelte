@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte'
     import {ulid} from 'ulidx';
-    import {getDownloadURL, getStorage, ref, uploadBytes, uploadBytesResumable} from 'firebase/storage';
+    import {getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/storage';
     import Tesseract from 'tesseract.js';
     export let image: File | undefined;
 
@@ -54,7 +54,7 @@
 
     const useAsImage = async() => {
 
-        const downloadURL = await uploadToStorage(image!!, async (
+        await uploadToStorage(image!!, async (
             downloadURL : string, 
             originalFileName: string,
             fileType: string,

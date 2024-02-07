@@ -30,13 +30,6 @@ export const POST = (async ({ request }) => {
 
 
 		//console.log(await request.json());
-
-
-		console.log('messages', messages);
-		console.log('data', data);
-		console.log('model', model);
-		console.log('systemMessage', systemMessage);
-		console.log('imageReferences', imageReferences);
 		
 
 		if (!messages) {
