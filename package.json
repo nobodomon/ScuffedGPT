@@ -52,6 +52,7 @@
 		"ai": "^2.2.33",
 		"attr-accept": "^2.2.2",
 		"chart.js": "^4.4.1",
+		"crypto-js": "^4.2.0",
 		"eslint-plugin-svelte": "^2.35.1",
 		"express": "^4.18.2",
 		"file-icons-js": "github:websemantics/file-icons-js",

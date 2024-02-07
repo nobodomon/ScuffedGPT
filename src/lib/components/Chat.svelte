@@ -21,7 +21,7 @@
 
 	import {useChat} from 'ai/svelte'
 	import { deleteObject, getStorage, ref } from 'firebase/storage'
-
+	import CryptoJS from 'crypto-js'
 
     export let threadID = ""
 	let threadname = ""
@@ -29,6 +29,8 @@
 	let bookmarks: any[] = []
 	let users: any[] = []
 	let errors: any[] = []
+	let locked: boolean = false
+
 	let loading: boolean = false
 	let inProgress: boolean = false
 
@@ -44,6 +46,8 @@
     let firestore = getFirestore()
     let auth = getAuth()
 	let scrollToDiv: HTMLDivElement
+
+	let encrytedMessages: string = ""
 
 	let imageList: any[] = []
 
@@ -132,29 +136,31 @@
 		}
 
 		console.log(imageList);
-
+		const key = users.toString().split(',').sort().join(',');
         if(threadID != ""){
             await setDoc(doc(firestore, "Threads", threadID), {
                 name: threadname,
-                messages: chatMessages,
+                messages: locked ? encrypt(chatMessages, key) : chatMessages,
 				model: model,
                 users: users,
 				bookmarks: bookmarks,
 				createdOn: serverTimestamp(),
 				updatedOn: serverTimestamp(),
 				systemMessage: systemMessage,
-				imageList: imageList
+				imageList: imageList,
+				locked: locked
             },{merge: true})
         }else{
             await addDoc(threadsCollection, {
                 name: threadname,
-                messages: chatMessages,
+                messages: locked ? encrypt(chatMessages, key) : chatMessages,
 				model: model,
                 users: users,
 				bookmarks: bookmarks,
 				updatedOn: serverTimestamp(),
 				systemMessage: systemMessage,
-				imageList: imageList
+				imageList: imageList,
+				locked: locked
             }).then((docRef) => {
                 threadID = docRef.id
 
@@ -165,18 +171,73 @@
         }
     }
 
+	
+	async function lockThread(){
+		
+		const key = users.toString().split(',').sort().join(',');
+		locked = true;
+		
+		//encrypt the chatMessages
+
+		//console.log(encrypt(chatMessages, key));
+
+		await updateDb();
+
+
+		hideLockConfirmation();
+	}
+
+	async function unlockThread(){
+		locked = false;
+		const key = users.toString().split(',').sort().join(',');
+		chatMessages = await decrypt(encrytedMessages, users.toString().split(',').sort().join(','));
+		await updateDb();
+		hideLockConfirmation();
+	}
+
+
+	function encrypt(messages: any, key:string){
+		//encrypt the messages
+		var cipher = CryptoJS.AES.encrypt(JSON.stringify(messages), key).toString();
+		return cipher;
+	}
+
+	function decrypt(messages: any, key:string){
+		//decrypt the messages
+		var bytes  = CryptoJS.AES.decrypt(messages, key);
+		var originalText = bytes.toString(CryptoJS.enc.Utf8);
+		console.log(originalText);
+		return JSON.parse(originalText);
+	}
+
+
 	export async function getThread(threadId: string){
 		fetching = true;
-		onSnapshot(doc(firestore, "Threads", threadId), (doc) => {
+		onSnapshot(doc(firestore, "Threads", threadId), (doc:any) => {
 			
+			if(doc.data()!!.locked){
+				if(doc.data()!!.users.indexOf(auth.currentUser!!.uid) == -1){
+					chatMessages = [];
+				}else{
+					console.log("Thread is locked");
+					const key = doc.data()!!.users.toString().split(',').sort().join(',');
+					chatMessages = decrypt(doc.data()!!.messages, key);
+					encrytedMessages = doc.data()!!.messages;
+				}
+			}else{
+				chatMessages = doc.data()!!.messages;
+			}
+
+
+
 			threadname = doc.data()!!.name;
-			chatMessages = doc.data()!!.messages;
 			model = doc.data()!!.model;
 			users = typeof doc.data()!!.users == 'string' ? [doc.data()!!.users] : doc.data()!!.users;
 			bookmarks = doc.data()!!.bookmarks ? doc.data()!!.bookmarks.sort((a:any,b: any)=> a.index > b.index) : [];
 			systemMessage = doc.data()!!.systemMessage ? doc.data()!!.systemMessage : "";
 			imageList = doc.data()!!.imageList ? doc.data()!!.imageList : [];
 			fetching = false;
+			locked = doc.data()!!.locked ?? false;
 
 			scrollToBottom()
 		});
@@ -291,6 +352,7 @@
 			console.error('Error removing file: ', error);
 		});
 	}
+
 
 	function removeReference(index: number){
 		let newReference = structuredClone(imageReferences);
@@ -432,6 +494,14 @@
 		return bookmarks.sort((a: any, b: any) => a.index > b.index)
 	}
 
+	const showLockThreadConfirmation = () => {
+		(document.getElementById('lockThreadConfirmation') as HTMLDialogElement).showModal()
+	}
+
+	const hideLockConfirmation = () => {
+		(document.getElementById('lockThreadConfirmation') as HTMLDialogElement).close()
+	}
+
 </script>
 <div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
@@ -481,6 +551,19 @@
 			</ul>
 		</div>
 		{/if}
+		<button class={`btn btn-square ${locked ? "btn-error": 'btn-primary'}`} on:click={showLockThreadConfirmation}>
+			{#if locked } 
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+				</svg>
+
+			{:else}
+
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+				</svg>
+			{/if}
+		</button>
 	</div>
 	<div class={" bg-base-300 rounded-md overflow-y-auto flex flex-col grow " + (answer != "" || $isLoading ? "animate-pulse" : "")}>
 		<div class="flex flex-col relative">
@@ -621,6 +704,31 @@
 	<TextRecognition bind:image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt} on:useAsImage={appendUrl} allowImageInput={model == "gpt-4-vision-preview"}/>
 	
 	<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
+
+	<dialog id="lockThreadConfirmation" class="modal">
+		<div class="modal-box">
+			<div class="flex flex-col items-start gap-4">
+				{#if locked}
+					<h3 class="font-bold text-lg">Are you sure you want to unlock this thread?</h3>
+					<p class="text-base-content">Once unlocked, you can share this thread with anyone again.</p>
+				{:else}
+				
+					<h3 class="font-bold text-lg">Are you sure you want to lock this thread?</h3>
+					<p class="text-base-content">Once locked, you will not be able to share this thread unless you unlock it again.</p>
+					<p class="text-base-content">Anyone that you shared this thread with will still be able to access this thread.</p>
+				{/if}
+				<div class="flex gap-4 justify-end w-full">
+					{#if locked}
+						<button class="btn btn-error" on:click={unlockThread}>Unlock</button>
+					{:else}
+						<button class="btn btn-primary" on:click={lockThread}>Lock</button>
+					{/if}
+					<button class="btn btn-primary" on:click={hideLockConfirmation}>Cancel</button>
+				</div>
+			</div>
+		</div>
+	</dialog>
+
 	<div class="toast toast-top toast-center">
 		{#each errors as error, index}
 			<div class="alert alert-error">
