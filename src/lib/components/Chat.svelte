@@ -504,6 +504,7 @@
 
 	const checkAccess = () => {
 		if(locked && users.indexOf(auth.currentUser!!.uid) == -1){
+			console.log("You do not have access to this thread");
 			return false
 		}else{
 			return true
@@ -511,6 +512,13 @@
 	}
 
 </script>
+{#if fetching}
+
+<div class="p-4 flex flex-col items-center justify-center">
+				
+	<span class="loading loading-spinner loading-lg"></span>
+</div>
+{:else}
 {#if checkAccess()}
 <div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
@@ -766,4 +774,5 @@
 		<p class="text-base-content">You do not have access to this thread.</p>
 		<a href="/" class="btn btn-ghost">Go back</a>
 	</div>
+{/if}
 {/if}
