@@ -131,9 +131,9 @@
 
     const calculatePercentage = (current: number, prev: number) => {
         if(prev == undefined || isNaN(prev) || prev == 0){
-            return 0
+            return "0%"
         }
-        return ((current - prev) / prev) * 100
+        return `${((current - prev) / prev) * 100}%`
     }
 
     const getImageCost = (item: UsageMetrics) =>{
