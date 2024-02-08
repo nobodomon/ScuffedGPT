@@ -502,7 +502,16 @@
 		(document.getElementById('lockThreadConfirmation') as HTMLDialogElement).close()
 	}
 
+	const checkAccess = () => {
+		if(locked && users.indexOf(auth.currentUser!!.uid) == -1){
+			return false
+		}else{
+			return true
+		}
+	}
+
 </script>
+{#if checkAccess()}
 <div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]">
 	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
 		<div class="form-control grow shadow-inner">
@@ -513,8 +522,12 @@
 				class="input w-full text-base-content join-item"
 				bind:value={threadname}
 				/>
-			  <button class="btn btn-secondary" on:click={async ()=>{
-				await updateDb()
+			  <button class={`btn btn-secondary ${checkAccess() ? "" : "disabled"}`} on:click={async ()=>{
+				if(checkAccess()){
+					await updateDb();
+				}else{
+					handleError("You do not have access to this thread")
+				}
 			  }}>
 			  	<div class="w-5 join-item">
 				<MdSave />
@@ -689,14 +702,20 @@
 			</ul>
 	  	</div>
 		{/if}
-		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={$input} />
+		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={$input}
+			disabled = {
+				locked? !checkAccess() : false
+			}
+		/>
 		{#if $isLoading}
-			<button type="submit" class={`btn btn-primary btn-square loading ${$isLoading ? "disabled" : ""}`} disabled>
+			<button type="submit" class={`btn btn-primary btn-square loading ${$isLoading ? "disabled" : ""}`}>
 			</button>
 		{:else if $input == ""}
 			<button type="submit" class="btn btn-primary" disabled>Send</button>
 		{:else}
-			<button type="submit" class="btn btn-primary">Send</button>
+			<button type="submit" class="btn btn-primary" disabled = {
+				locked? !checkAccess() : false
+			}>Send</button>
 		{/if}
 	</form>
 	
@@ -742,3 +761,9 @@
 		{/each}
 	</div>
 </div>
+{:else}
+	<div class="rounded-box bg-base-200 border border-error p-4 flex items-center gap-4">
+		<p class="text-base-content">You do not have access to this thread.</p>
+		<a href="/" class="btn btn-ghost">Go back</a>
+	</div>
+{/if}
