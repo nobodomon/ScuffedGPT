@@ -105,7 +105,7 @@
                    
                     viewingDate = date[0]
 
-                    viewingStats = usageMetrics.find((item: UsageMetrics) => item.date == viewingDate)
+                    viewingStats = new UsageMetrics(usageMetrics.find((item: UsageMetrics) => item.date == viewingDate) ?? {})
 
                     if(usageMetrics.indexOf(viewingStats) == usageMetrics.length - 1){
                         prevMonthStats = new UsageMetrics({})
