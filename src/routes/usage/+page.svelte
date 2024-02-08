@@ -191,7 +191,7 @@
 
 </script>
 
-<div class="w-full h-full flex items-start flex-col">
+<div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px] overflow-y-auto">
     <div class="flex items-center justify-between w-full p-4">
         <h1 class="text-xl font-bold">{`Usage Metrics - ${moment(viewingDate, "YYYY-MM").format("MMM YYYY")}`}</h1>
         <select bind:value={viewingDate} class="select select-primary select-md" on:change={onChangeViewingDate}>
