@@ -105,7 +105,7 @@
                    
                     viewingDate = date[0]
 
-                    viewingStats = usageMetrics.find((item: UsageMetrics) => item.date == viewingDate)
+                    viewingStats = new UsageMetrics(usageMetrics.find((item: UsageMetrics) => item.date == viewingDate) ?? {})
 
                     if(usageMetrics.indexOf(viewingStats) == usageMetrics.length - 1){
                         prevMonthStats = new UsageMetrics({})
@@ -131,9 +131,9 @@
 
     const calculatePercentage = (current: number, prev: number) => {
         if(prev == undefined || isNaN(prev) || prev == 0){
-            return 0
+            return "0%"
         }
-        return ((current - prev) / prev) * 100
+        return `${((current - prev) / prev) * 100}%`
     }
 
     const getImageCost = (item: UsageMetrics) =>{
@@ -191,7 +191,7 @@
 
 </script>
 
-<div class="w-full h-full flex items-start flex-col">
+<div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px] overflow-y-auto">
     <div class="flex items-center justify-between w-full p-4">
         <h1 class="text-xl font-bold">{`Usage Metrics - ${moment(viewingDate, "YYYY-MM").format("MMM YYYY")}`}</h1>
         <select bind:value={viewingDate} class="select select-primary select-md" on:change={onChangeViewingDate}>
@@ -257,7 +257,7 @@
                       </svg>
                       
                   </div>
-                  <div class="stat-title">GPT-3 Usage</div>
+                  <div class="stat-title">GPT-3 Prompts</div>
                   <div class="stat-value text-primary">{viewingStats["gpt3PromptTokensUsed"]}</div>
                   <div class="stat-desc">{
                      `${calculatePercentage(viewingStats["gpt3PromptTokensUsed"], prevMonthStats["gpt3PromptTokensUsed"])} of last month`
@@ -269,7 +269,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                         </svg>
                     </div>
-                    <div class="stat-title">GPT-4 Answers</div>
+                    <div class="stat-title">GPT-3 Answers</div>
                     <div class="stat-value text-secondary">{viewingStats["gpt3AnswerTokensUsed"]}</div>
                     <div class="stat-desc">{
                         `${calculatePercentage(viewingStats["gpt3AnswerTokensUsed"], prevMonthStats["gpt3AnswerTokensUsed"])} of last month`}
