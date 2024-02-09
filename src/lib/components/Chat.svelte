@@ -306,7 +306,6 @@
 		}
 	}
 
-
 	function closeModal(){
 		image = undefined;
 		(document.getElementById("textRecognitionModal") as HTMLDialogElement).close();
@@ -503,7 +502,7 @@
 	}
 
 </script>
-<div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]">
+<div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]" on:paste={detectImg}>
 	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
 		<div class="form-control grow shadow-inner">
 			<div class="join w-full">
@@ -689,7 +688,7 @@
 			</ul>
 	  	</div>
 		{/if}
-		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} on:paste={detectImg} bind:value={$input} />
+		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} bind:value={$input} />
 		{#if $isLoading}
 			<button type="submit" class={`btn btn-primary btn-square loading ${$isLoading ? "disabled" : ""}`} disabled>
 			</button>
@@ -733,7 +732,7 @@
 		{#each errors as error, index}
 			<div class="alert alert-error">
 				There was problem with the request. Please try again.
-				<button class="btn btn-circle btn-xs btn-ghost" on:click={()=>{dismissError(index)}}>
+				<button class="btn btn-circle btn-xs btn-ghost" on:click={()=>{dismissError(index)}} >
 					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-6 h-6">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
