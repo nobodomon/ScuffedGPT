@@ -518,260 +518,260 @@
 	<span class="loading loading-spinner loading-lg"></span>
 </div>
 {:else}
-{#if checkAccess()}
-<div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]" on:paste={detectImg}>
-	<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
-		<div class="form-control grow shadow-inner">
-			<div class="join w-full">
-			  <input 
-				type="text" 
-				placeholder="Unnamed thread" 
-				class="input w-full text-base-content join-item"
-				bind:value={threadname}
-				/>
-			  <button class={`btn btn-secondary ${checkAccess() ? "" : "disabled"}`} on:click={async ()=>{
-				if(checkAccess()){
-					await updateDb();
-				}else{
-					handleError("You do not have access to this thread")
-				}
-			  }}>
-			  	<div class="w-5 join-item">
-				<MdSave />
-				</div>	
-			  </button>
+	{#if checkAccess()}
+	<div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]" on:paste={detectImg}>
+		<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
+			<div class="form-control grow shadow-inner">
+				<div class="join w-full">
+				<input 
+					type="text" 
+					placeholder="Unnamed thread" 
+					class="input w-full text-base-content join-item"
+					bind:value={threadname}
+					/>
+				<button class={`btn btn-secondary ${checkAccess() ? "" : "disabled"}`} on:click={async ()=>{
+					if(checkAccess()){
+						await updateDb();
+					}else{
+						handleError("You do not have access to this thread")
+					}
+				}}>
+					<div class="w-5 join-item">
+					<MdSave />
+					</div>	
+				</button>
+				</div>
 			</div>
-		</div>
-		
-		<label class="swap">
-			<input type="checkbox" />
-			<div class="btn btn-accent break-keep swap-off">
-				{getTotalTokens(chatMessages)} tokens
-			</div>
-			<div class="btn btn-accent break-keep swap-on">
-				${(getTotalTokens(chatMessages)/1000 * 0.0015).toFixed(4)}
-			</div>
-		</label>
-		{#if bookmarks.length > 0}
-		<div class="dropdown dropdown-bottom dropdown-end">
-			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-			<!-- svelte-ignore a11y-label-has-associated-control -->
-			<label tabindex="0" class="btn btn-square">
-				<div class="w-5">
-						<MdBookmark />
+			
+			<label class="swap">
+				<input type="checkbox" />
+				<div class="btn btn-accent break-keep swap-off">
+					{getTotalTokens(chatMessages)} tokens
+				</div>
+				<div class="btn btn-accent break-keep swap-on">
+					${(getTotalTokens(chatMessages)/1000 * 0.0015).toFixed(4)}
 				</div>
 			</label>
-			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-			<ul tabindex="0" class="dropdown-content menu p-2 mt-2 shadow bg-base-100 rounded-box w-52">
-				{#each sortBookmarks(bookmarks) as bookmark}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<!-- svelte-ignore a11y-missing-attribute -->
-					<li class="w-full text-base-content" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
-				{/each}
-			</ul>
-		</div>
-		{/if}
-		<button class={`btn btn-square ${locked ? "btn-error": 'btn-primary'}`} on:click={showLockThreadConfirmation}>
-			{#if locked } 
-				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-				</svg>
-
-			{:else}
-
-				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-				</svg>
-			{/if}
-		</button>
-	</div>
-	<div class={" bg-base-300 rounded-md overflow-y-auto flex flex-col grow " + (answer != "" || $isLoading ? "animate-pulse" : "")}>
-		<div class="flex flex-col relative">
-		
-		{#if fetching}
-			<div class="p-4 flex flex-col items-center justify-center">
-				
-				<span class="loading loading-spinner loading-lg"></span>
-			</div>
-		{:else}
-			{#if threadID == ""}
-			<div class="p-4 flex gap-4">
-				<div class="form-control grow">
-					<div class="join">
-						<input type="text" bind:value={systemMessage} class="input w-full join-item" placeholder="Provide a system message... (optional)"/>
-						<div class="tooltip tooltip-bottom before:-left-[235%]" data-tip="Provide a system message to get more related results. E.g. You are a software requirements engineer, always prompt me for missing information and when asked for diagrams output it in plantuml">
-							<button class="btn btn-square rounded-l-none join-item">
-								<div class="w-5">
-									<MdInfo />
-								</div>
-							</button>
-						</div>
-					</div>
-				  </div>
-				  
-				  <select bind:value={model} class="select shrink">
-					<option selected value={'gpt-3.5-turbo-0125'}>GPT 3.5 Turbo</option>
-					<option value={'gpt-4-turbo-preview'}>GPT 4 Turbo</option>
-					<option value={'gpt-4-vision-preview'}>GPT 4 Vision</option>
-				  </select>
-			</div>
-			{/if}
-			{#each chatMessages as message, index}
-				<ChatMessage 
-				type={message.role} 
-				message={message.content} 
-				profilePic={message?.profilePic}
-				imageReference={message?.imageReference}
-				name= {message.name}
-				user= {auth.currentUser}
-				index = {index}
-				bookmarked = {bookmarks.find((item) => item.index == index) ? true : false}
-				on:bookmark={updateBookmark}
-				/>
-			{/each}
-			{#if $isLoading}
-				<ChatMessage 
-					type="assistant" 
-					message={$messages[$messages.length - 1]?.content == $input ? "Loading..." : $messages[$messages.length - 1]?.content ?? ""} 
-					name={'ScuffedGPT'}
-					profilePic={undefined}
-					imageReference={undefined}
-					loading={$isLoading} 
-					user= {auth.currentUser}
-					index = {-1}
-					bookmarked = {false}
-					/>
-			{/if}
-		{/if}
-		</div>
-		<div class="" bind:this={scrollToDiv} />
-
-	</div>
-	{#if imageReferences.length > 0}
-	<div class="flex items-stretch rounded-md gap-4 bg-base-300 p-4">
-		{#key imageReferences}
-			{#each imageReferences as reference, index}
-				<div class="relative">
-					{#if reference.type != 'pdf'}
-						<img src={reference.url} alt={reference.name} class="rounded-lg w-24 h-24 object-contain"/>
-					{:else}
-						<div class="rounded-lg w-24 h-24 object-cover flex-col flex items-center justify-center">
-							<div class="w-10">
-								<MdPictureAsPdf />
-							</div>
-							<marquee>{reference.name}</marquee>
-						</div>
-					{/if}
-					<div on:click={(e)=>{removeReference(index)}} class="absolute w-full backdrop-blur h-full flex items-center justify-center top-[0] left-[0] opacity-[0] transition-all hover:opacity-[100]">
-						<div class="w-10">
-							<MdDelete/>
-						</div>
-					</div>
-				</div>
-			{/each}
-		{/key}
-	</div>
-	{/if}
-	<form
-		class="flex items-stretch rounded-md gap-4 bg-base-300 p-4"
-		on:submit={$isLoading ? null : handleSubmitWrapper}
-	>	
-		{#if imageList.length > 0}
-		<div class="dropdown dropdown-top">
-			<div tabindex="0" role="button" class="btn btn-square">
-				<div class="w-5">	
-					<MdAdd />
-				</div>
-			</div>
+			{#if bookmarks.length > 0}
+			<div class="dropdown dropdown-bottom dropdown-end">
 				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box">
-				{#each imageList as image, index}
-					<li class="flex items-stretch gap-2">
-						<div class="w-full flex">
-							<button on:click={
-								(e)=>{
-									addFileReference(image)
-								}
-							} class="flex-grow text-left" type="button">{image.name}</button>
-							<button on:click={
-								(e)=>{
-									deleteFileReference(image)
-								}
-							} class="btn btn-square">
-								<div class="w-5">
-									<MdDelete/>
-								</div>
-							</button>
-						</div>
-					</li>
-					
-				{/each}
-			</ul>
-	  	</div>
-		{/if}
-		<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} bind:value={$input}
-			disabled = {
-				locked? !checkAccess() : false
-			}
-		/>
-		{#if $isLoading}
-			<button type="submit" class={`btn btn-primary btn-square loading ${$isLoading ? "disabled" : ""}`}>
-			</button>
-		{:else if $input == ""}
-			<button type="submit" class="btn btn-primary" disabled>Send</button>
-		{:else}
-			<button type="submit" class="btn btn-primary" disabled = {
-				locked? !checkAccess() : false
-			}>Send</button>
-		{/if}
-	</form>
-	
-	
-	<TextRecognition bind:image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt} on:useAsImage={appendUrl} allowImageInput={model == "gpt-4-vision-preview"}/>
-	
-	<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
+				<!-- svelte-ignore a11y-label-has-associated-control -->
+				<label tabindex="0" class="btn btn-square">
+					<div class="w-5">
+							<MdBookmark />
+					</div>
+				</label>
+				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+				<ul tabindex="0" class="dropdown-content menu p-2 mt-2 shadow bg-base-100 rounded-box w-52">
+					{#each sortBookmarks(bookmarks) as bookmark}
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<!-- svelte-ignore a11y-missing-attribute -->
+						<li class="w-full text-base-content" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
+					{/each}
+				</ul>
+			</div>
+			{/if}
+			<button class={`btn btn-square ${locked ? "btn-error": 'btn-primary'}`} on:click={showLockThreadConfirmation}>
+				{#if locked } 
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+					</svg>
 
-	<dialog id="lockThreadConfirmation" class="modal">
-		<div class="modal-box">
-			<div class="flex flex-col items-start gap-4">
-				{#if locked}
-					<h3 class="font-bold text-lg">Are you sure you want to unlock this thread?</h3>
-					<p class="text-base-content">Once unlocked, you can share this thread with anyone again.</p>
 				{:else}
-				
-					<h3 class="font-bold text-lg">Are you sure you want to lock this thread?</h3>
-					<p class="text-base-content">Once locked, you will not be able to share this thread unless you unlock it again.</p>
-					<p class="text-base-content">Anyone that you shared this thread with will still be able to access this thread.</p>
+
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+					</svg>
 				{/if}
-				<div class="flex gap-4 justify-end w-full">
+			</button>
+		</div>
+		<div class={" bg-base-300 rounded-md overflow-y-auto flex flex-col grow " + (answer != "" || $isLoading ? "animate-pulse" : "")}>
+			<div class="flex flex-col relative">
+			
+			{#if fetching}
+				<div class="p-4 flex flex-col items-center justify-center">
+					
+					<span class="loading loading-spinner loading-lg"></span>
+				</div>
+			{:else}
+				{#if threadID == ""}
+				<div class="p-4 flex gap-4">
+					<div class="form-control grow">
+						<div class="join">
+							<input type="text" bind:value={systemMessage} class="input w-full join-item" placeholder="Provide a system message... (optional)"/>
+							<div class="tooltip tooltip-bottom before:-left-[235%]" data-tip="Provide a system message to get more related results. E.g. You are a software requirements engineer, always prompt me for missing information and when asked for diagrams output it in plantuml">
+								<button class="btn btn-square rounded-l-none join-item">
+									<div class="w-5">
+										<MdInfo />
+									</div>
+								</button>
+							</div>
+						</div>
+					</div>
+					
+					<select bind:value={model} class="select shrink">
+						<option selected value={'gpt-3.5-turbo-0125'}>GPT 3.5 Turbo</option>
+						<option value={'gpt-4-turbo-preview'}>GPT 4 Turbo</option>
+						<option value={'gpt-4-vision-preview'}>GPT 4 Vision</option>
+					</select>
+				</div>
+				{/if}
+				{#each chatMessages as message, index}
+					<ChatMessage 
+					type={message.role} 
+					message={message.content} 
+					profilePic={message?.profilePic}
+					imageReference={message?.imageReference}
+					name= {message.name}
+					user= {auth.currentUser}
+					index = {index}
+					bookmarked = {bookmarks.find((item) => item.index == index) ? true : false}
+					on:bookmark={updateBookmark}
+					/>
+				{/each}
+				{#if $isLoading}
+					<ChatMessage 
+						type="assistant" 
+						message={$messages[$messages.length - 1]?.content == $input ? "Loading..." : $messages[$messages.length - 1]?.content ?? ""} 
+						name={'ScuffedGPT'}
+						profilePic={undefined}
+						imageReference={undefined}
+						loading={$isLoading} 
+						user= {auth.currentUser}
+						index = {-1}
+						bookmarked = {false}
+						/>
+				{/if}
+			{/if}
+			</div>
+			<div class="" bind:this={scrollToDiv} />
+
+		</div>
+		{#if imageReferences.length > 0}
+		<div class="flex items-stretch rounded-md gap-4 bg-base-300 p-4">
+			{#key imageReferences}
+				{#each imageReferences as reference, index}
+					<div class="relative">
+						{#if reference.type != 'pdf'}
+							<img src={reference.url} alt={reference.name} class="rounded-lg w-24 h-24 object-contain"/>
+						{:else}
+							<div class="rounded-lg w-24 h-24 object-cover flex-col flex items-center justify-center">
+								<div class="w-10">
+									<MdPictureAsPdf />
+								</div>
+								<marquee>{reference.name}</marquee>
+							</div>
+						{/if}
+						<div on:click={(e)=>{removeReference(index)}} class="absolute w-full backdrop-blur h-full flex items-center justify-center top-[0] left-[0] opacity-[0] transition-all hover:opacity-[100]">
+							<div class="w-10">
+								<MdDelete/>
+							</div>
+						</div>
+					</div>
+				{/each}
+			{/key}
+		</div>
+		{/if}
+		<form
+			class="flex items-stretch rounded-md gap-4 bg-base-300 p-4"
+			on:submit={$isLoading ? null : handleSubmitWrapper}
+		>	
+			{#if imageList.length > 0}
+			<div class="dropdown dropdown-top">
+				<div tabindex="0" role="button" class="btn btn-square">
+					<div class="w-5">	
+						<MdAdd />
+					</div>
+				</div>
+					<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+					<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box">
+					{#each imageList as image, index}
+						<li class="flex items-stretch gap-2">
+							<div class="w-full flex">
+								<button on:click={
+									(e)=>{
+										addFileReference(image)
+									}
+								} class="flex-grow text-left" type="button">{image.name}</button>
+								<button on:click={
+									(e)=>{
+										deleteFileReference(image)
+									}
+								} class="btn btn-square">
+									<div class="w-5">
+										<MdDelete/>
+									</div>
+								</button>
+							</div>
+						</li>
+						
+					{/each}
+				</ul>
+			</div>
+			{/if}
+			<textarea class="textarea textarea-xs text-sm max-h-48 w-full text-base-content" on:keypress={handleInput} bind:value={$input}
+				disabled = {
+					locked? !checkAccess() : false
+				}
+			/>
+			{#if $isLoading}
+				<button type="submit" class={`btn btn-primary btn-square loading ${$isLoading ? "disabled" : ""}`}>
+				</button>
+			{:else if $input == ""}
+				<button type="submit" class="btn btn-primary" disabled>Send</button>
+			{:else}
+				<button type="submit" class="btn btn-primary" disabled = {
+					locked? !checkAccess() : false
+				}>Send</button>
+			{/if}
+		</form>
+		
+		
+		<TextRecognition bind:image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt} on:useAsImage={appendUrl} allowImageInput={model == "gpt-4-vision-preview"}/>
+		
+		<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
+
+		<dialog id="lockThreadConfirmation" class="modal">
+			<div class="modal-box">
+				<div class="flex flex-col items-start gap-4">
 					{#if locked}
-						<button class="btn btn-error" on:click={unlockThread}>Unlock</button>
+						<h3 class="font-bold text-lg">Are you sure you want to unlock this thread?</h3>
+						<p class="text-base-content">Once unlocked, you can share this thread with anyone again.</p>
 					{:else}
-						<button class="btn btn-primary" on:click={lockThread}>Lock</button>
+					
+						<h3 class="font-bold text-lg">Are you sure you want to lock this thread?</h3>
+						<p class="text-base-content">Once locked, you will not be able to share this thread unless you unlock it again.</p>
+						<p class="text-base-content">Anyone that you shared this thread with will still be able to access this thread.</p>
 					{/if}
-					<button class="btn btn-primary" on:click={hideLockConfirmation}>Cancel</button>
+					<div class="flex gap-4 justify-end w-full">
+						{#if locked}
+							<button class="btn btn-error" on:click={unlockThread}>Unlock</button>
+						{:else}
+							<button class="btn btn-primary" on:click={lockThread}>Lock</button>
+						{/if}
+						<button class="btn btn-primary" on:click={hideLockConfirmation}>Cancel</button>
+					</div>
 				</div>
 			</div>
-		</div>
-	</dialog>
+		</dialog>
 
-	<div class="toast toast-top toast-center">
-		{#each errors as error, index}
-			<div class="alert alert-error">
-				There was problem with the request. Please try again.
-				<button class="btn btn-circle btn-xs btn-ghost" on:click={()=>{dismissError(index)}} >
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-6 h-6">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-					</svg>
-				  </button>
-			</div>
-		{/each}
+		<div class="toast toast-top toast-center">
+			{#each errors as error, index}
+				<div class="alert alert-error">
+					There was problem with the request. Please try again.
+					<button class="btn btn-circle btn-xs btn-ghost" on:click={()=>{dismissError(index)}} >
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-6 h-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+						</svg>
+					</button>
+				</div>
+			{/each}
+		</div>
 	</div>
-</div>
-{:else}
-	<div class="rounded-box bg-base-200 border border-error p-4 flex items-center gap-4">
-		<p class="text-base-content">You do not have access to this thread.</p>
-		<a href="/" class="btn btn-ghost">Go back</a>
-	</div>
-{/if}
+	{:else}
+		<div class="rounded-box bg-base-200 border border-error p-4 flex items-center gap-4">
+			<p class="text-base-content">You do not have access to this thread.</p>
+			<a href="/" class="btn btn-ghost">Go back</a>
+		</div>
+	{/if}
 {/if}
