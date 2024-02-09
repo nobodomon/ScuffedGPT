@@ -40,6 +40,7 @@
         date: string | undefined = ""
         gpt4PromptTokensUsed: number = 0;
         gpt4AnswerTokensUsed: number = 0;
+        gpt4VisionTokensUsed: number = 0;
         gpt3PromptTokensUsed: number = 0;
         gpt3AnswerTokensUsed: number = 0;
         transcriptionTime: number = 0;
@@ -59,6 +60,7 @@
             this.date = doc?.date ?? ""
             this.gpt4PromptTokensUsed = doc?.gpt4PromptTokensUsed ?? 0
             this.gpt4AnswerTokensUsed = doc?.gpt4AnswerTokensUsed ?? 0
+            this.gpt4VisionTokensUsed = doc?.gpt4VisionTokensUsed ?? 0
             this.gpt3PromptTokensUsed = doc?.gpt3PromptTokensUsed ?? 0
             this.gpt3AnswerTokensUsed = doc?.gpt3AnswerTokensUsed ?? 0
             this.transcriptionTime = doc?.transcriptionTime ?? 0
@@ -155,6 +157,7 @@
 
         const gpt4PromptCost = (item.gpt4PromptTokensUsed/1000 * 0.01).toFixed(4);
         const gpt4AnswerCost = (item.gpt4AnswerTokensUsed/1000 * 0.03).toFixed(4);
+        const gpt4VisionTokensCost = (item.gpt4VisionTokensUsed/1000 * 0.01).toFixed(4);
 
         const s_cost = (item["256x256"] * 0.016).toFixed(4);
         const m_cost = (item["512x512"] * 0.018).toFixed(4);
@@ -243,6 +246,35 @@
                     }</div>
                     <div class="stat-desc text-secondary">
                         {`${calculatePercentage((viewingStats["gpt4PromptTokensUsed"]/1000 * 0.01) + (viewingStats['gpt4AnswerTokensUsed']/1000 * 0.03), (prevMonthStats["gpt4PromptTokensUsed"]/1000 * 0.01) + (prevMonthStats['gpt4AnswerTokensUsed']/1000 * 0.03))} of last month`}
+                    </div>
+                </div>
+                
+            </div>
+            <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-figure text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.652-3.978c.26-.39.687-.634 1.153-.67 1.09-.086 2.17-.208 3.238-.365 1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                      </svg>
+                      
+                  </div>
+                  <div class="stat-title">GPT-4 Vision Tokens</div>
+                  <div class="stat-value text-primary">{viewingStats["gpt4VisionTokensUsed"]}</div>
+                  <div class="stat-desc">{
+                     `${calculatePercentage(viewingStats["gpt4VisionTokensUsed"], prevMonthStats["gpt4VisionTokensUsed"])} of last month`
+                  }</div>
+                </div>
+                
+                <div class="stat">
+                  <div class="stat-figure text-secondary">
+                        
+                    </div>
+                    <div class="stat-value">Est Cost</div>
+                    <div class="stat-title">{
+                        `$${((viewingStats["gpt4VisionTokensUsed"]/1000 * 0.01) + (viewingStats['gpt4VisionTokensUsed']/1000 * 0.03)).toFixed(4)} USD`    
+                    }</div>
+                    <div class="stat-desc text-secondary">
+                        {`${calculatePercentage((viewingStats["gpt4VisionTokensUsed"]/1000 * 0.01), (prevMonthStats["gpt4VisionTokensUsed"]/1000 * 0.01))} of last month`}
                     </div>
                 </div>
                 

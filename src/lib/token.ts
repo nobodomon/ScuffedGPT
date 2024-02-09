@@ -62,11 +62,28 @@ const updateGPT4TokenUsed = async (token: GPT4Token, params: any) => {
     }, {merge: true})
 }
 
+const calculateImageToken = (width: number, height:number) => {
+    const area = width * height;
+
+    const basePricingArea = 512 * 512;
+
+    const token = Math.ceil(area / basePricingArea);
+
+    return 170 * token;
+}
+
 const updateGPT4VisionTokenUsed = async (token: any, params: any) => {
     const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));
+    console.log(params);
+    let imageTokensUsed = 0;
+    for(const reference of params){
+        imageTokensUsed += calculateImageToken(reference.fileDimensions.width, reference.fileDimensions.height);
+    }
+
     await setDoc(userRef, {
         gpt4PromptTokensUsed: increment(token.prompt),
         gpt4AnswerTokensUsed: increment(token.answer),
+        gpt4VisionTokensUsed: increment(imageTokensUsed)
         
     }, {merge: true})
 

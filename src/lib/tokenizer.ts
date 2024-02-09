@@ -18,6 +18,30 @@ export function getTokens(input: string): number {
 	}
 }
 
+const calculateImageToken = (width: number, height:number) => {
+    const area = width * height;
+
+    const basePricingArea = 512 * 512;
+
+    const token = Math.ceil(area / basePricingArea);
+
+    return 170 * token;
+}
+
+
+export function getImageTokens(imageReference: any[]): number {
+	
+    let imageTokensUsed = 0;
+	for(const reference of imageReference){
+		const width = reference.fileDimensions?.width ?? 0
+		const height = reference.fileDimensions?.height ?? 0
+        imageTokensUsed += calculateImageToken(width, height);
+    }
+
+	return imageTokensUsed
+
+}
+
 export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[]){
 	let tokens = 0
 	chatMessages.forEach((message) => {

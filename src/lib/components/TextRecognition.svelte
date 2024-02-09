@@ -12,6 +12,9 @@
     let uploadStarted = false;
     let uploadProgress = 0;
 
+    let imageWidth = 0;
+    let imageHeight = 0;
+
     const dispatch = createEventDispatcher();
 
     async function ocrText (image: File) {
@@ -58,12 +61,15 @@
             downloadURL : string, 
             originalFileName: string,
             fileType: string,
-            newFileName: string)=>{
+            newFileName: string,
+            fileDimensions: any)=>{
+
             await dispatch('useAsImage', {
                 fileURL: downloadURL,
                 originalFileName: originalFileName,
                 newFileName: newFileName,
-                fileType: fileType
+                fileType: fileType,
+                fileDimensions: fileDimensions
             });
             closeModal();
         });
@@ -73,6 +79,8 @@
         const storage = getStorage();
         const randomFileID = ulid();
         console.log(file.name);
+
+
         const extension = file.name.split('.').pop();
         //const fileNameNoExt = file.name.split('.').slice(0, -1).join('.');
         const newFileName = `${randomFileID}-${file.name}`;
@@ -93,15 +101,18 @@
                     console.log('Upload is running');
                     break;
             }
-        }, (error) => {
+        }, (error: any) => {
             console.log(error);
         },() => {
             // Handle successful uploads on complete
             uploadStarted = false;
-            getDownloadURL(uploadTask.snapshot.ref).then( async  (downloadURL) => {
+            getDownloadURL(uploadTask.snapshot.ref).then( async  (downloadURL :string) => {
                 console.log('File available at', downloadURL);
                 
-                await callback(downloadURL, file.name, extension, newFileName);
+                await callback(downloadURL, file.name, extension, newFileName , {
+                    width: imageWidth,
+                    height: imageHeight
+                });
             });
         });
     }
@@ -110,7 +121,18 @@
 	async function read (file: any) {
         return new Promise<any>((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = () => resolve(reader);
+            reader.onload = () => {
+                var img = new Image();
+
+                img.onload = function() {
+                    imageWidth = img.width;
+                    imageHeight = img.height;
+                }
+
+                img.src = reader.result as string;
+
+                resolve(reader);
+            };
             reader.onerror = reject;
             reader.readAsDataURL(file);
         })

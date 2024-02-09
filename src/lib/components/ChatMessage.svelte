@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getTokens } from '$lib/tokenizer'
+	import { getImageTokens, getTokens } from '$lib/tokenizer'
 	import { createEventDispatcher, each, escape } from 'svelte/internal'
 	import CodeBlock from './CodeBlock.svelte';
 	import MdBookmark from 'svelte-icons/md/MdBookmark.svelte'
@@ -77,6 +77,11 @@
 					<MdBookmarkBorder />
 				{/if}
 			</button>
+			{#if imageReference && imageReference.length > 0}
+			<div class="btn btn-ghost btn-xs">
+				{(type == "user" ? "Image(s) ":"Completion ")  + getImageTokens(imageReference) + " tokens"}
+			</div>
+			{/if}
 			<div class="btn btn-ghost btn-xs">
 				{(type == "user" ? "Prompt ":"Completion ")  + getTokens(message) + " tokens"}
 			</div>

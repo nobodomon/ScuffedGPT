@@ -86,7 +86,7 @@
 		onFinish: async () => {
 			const lastmessage = $messages[$messages.length - 1];
 			const messageBeforeLast = $messages[$messages.length - 2];
-			
+			const usedImages = [...imageReferences];
 			chatMessages = [...chatMessages, { role: 'assistant',name:'ScuffedGPT', content: lastmessage.content, id: threadID, profilePic: auth.currentUser!!.photoURL ?? undefined }]
 			const ansToken = await getTokens(lastmessage.content)
 			const promptToken = await getTokens(messageBeforeLast.content)
@@ -98,7 +98,7 @@
 			await updateTokenUsed({
 				prompt: promptToken,
 				answer: ansToken,
-			},model, imageReferences);
+			},model, usedImages);
 			scrollToBottom()
 		},
 		onError: (err) => {
@@ -316,7 +316,8 @@
 			url: e.detail.fileURL,
 			type: e.detail.fileType,
 			name: e.detail.originalFileName,
-			newName: e.detail.newFileName
+			newName: e.detail.newFileName,
+			fileDimensions: e.detail.fileDimensions
 		});
 		image = undefined;
 
