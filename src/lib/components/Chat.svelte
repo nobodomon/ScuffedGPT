@@ -10,6 +10,7 @@
 	import type {ChatMessageWrapper} from '$lib/ChatMessageWrapper'
 
     import { getFirestore, addDoc, setDoc, doc, serverTimestamp, onSnapshot } from 'firebase/firestore'
+    import {formatBytes, getBytesFromUnit, languages,languagesArray, toSeconds} from"../../utils";
     import { getAuth } from 'firebase/auth'
 
     import {threadsCollection} from "../../firebase"
@@ -21,7 +22,8 @@
 
 	import {useChat} from 'ai/svelte'
 	import { deleteObject, getStorage, ref } from 'firebase/storage'
-	import CryptoJS from 'crypto-js'
+	import CryptoJS from 'crypto-js'    
+	import Dropzone from 'svelte-file-dropzone';
 
     export let threadID = ""
 	let threadname = ""
@@ -55,8 +57,14 @@
 
 	$: imageReferences = imageReferences
 
+	let filedetected: boolean = false
+
 	let image: File | undefined = undefined;
 	let index: number = -1
+
+	
+    const allowedFormats = [".png", ".jpg", ".jpeg"]
+    const allowedFormatsString = allowedFormats.join(", ")
 	
 	$: threadID != "" && 
 		getThread(threadID).then(() => {
@@ -306,6 +314,17 @@
 		}
 	}
 
+    const handleFileUpload = async (e: any) => {
+        const {acceptedFiles, fileRejections} = e.detail;
+		if(acceptedFiles.length > 0){
+			image = acceptedFiles[0];
+			(document.getElementById("dropzone") as HTMLDialogElement)?.close();
+			(document.getElementById("textRecognitionModal") as HTMLDialogElement)?.showModal();
+			showTextRecognition = true;
+		}
+    }
+
+
 	function closeModal(){
 		image = undefined;
 		(document.getElementById("textRecognitionModal") as HTMLDialogElement).close();
@@ -511,6 +530,14 @@
 		}
 	}
 
+	const openDropzone = () => {
+		(document.getElementById('dropzone') as HTMLDialogElement).showModal()
+	}
+
+	const closeDropzone = () => {
+		(document.getElementById('dropzone') as HTMLDialogElement).close()
+	}
+
 </script>
 {#if fetching}
 
@@ -520,7 +547,14 @@
 </div>
 {:else}
 	{#if checkAccess()}
-	<div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]" on:paste={detectImg}>
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
+	<div class="flex flex-col w-full px-4 pb-4 items-stretch gap-4 grow max-h-full relative h-[0px]" on:paste={detectImg} on:dragend={()=>{}} on:dragover={()=>{
+		if(image){
+			return;
+		}else{
+			openDropzone()
+		}
+	}}>
 		<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
 			<div class="form-control grow shadow-inner">
 				<div class="join w-full">
@@ -567,6 +601,7 @@
 					{#each sortBookmarks(bookmarks) as bookmark}
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
 						<!-- svelte-ignore a11y-missing-attribute -->
+						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 						<li class="w-full text-base-content" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
 					{/each}
 				</ul>
@@ -660,9 +695,12 @@
 								<div class="w-10">
 									<MdPictureAsPdf />
 								</div>
+								<!-- svelte-ignore a11y-distracting-elements -->
 								<marquee>{reference.name}</marquee>
 							</div>
 						{/if}
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<!-- svelte-ignore a11y-no-static-element-interactions -->
 						<div on:click={(e)=>{removeReference(index)}} class="absolute w-full backdrop-blur h-full flex items-center justify-center top-[0] left-[0] opacity-[0] transition-all hover:opacity-[100]">
 							<div class="w-10">
 								<MdDelete/>
@@ -752,6 +790,41 @@
 						{/if}
 						<button class="btn btn-primary" on:click={hideLockConfirmation}>Cancel</button>
 					</div>
+				</div>
+			</div>
+		</dialog>
+
+		<dialog id="dropzone" class="modal"> 
+			<div class="modal-box flex flex-col items-stretch gap-4">
+				<Dropzone
+					containerClasses="card md:w-96 bg-base-200 shadow-inner p-4 hover:bg-neutral-300 hover:text-neutral-content hover:cursor-pointer transition self-center"
+					disableDefaultStyles={true}
+					maxSize={getBytesFromUnit("MiB",25)}
+					multiple={false}
+					on:drop={handleFileUpload}
+					accept = {allowedFormats}
+				> 
+					<div class="flex flex-col items-stretch justify-between w-full h-full gap-4 prose 
+							aspect-square
+							border-dashed border-2 rounded-lg border-primary p-4">
+						<h1 class="
+							w-full 
+							grow
+							flex
+							text-lg 
+							items-center 
+							justify-center
+							text-base-content
+							font-bold
+						">Drag and drop your file here</h1>
+						<div class="divider text-base-content font-bold ">Supported Formats</div>
+						<h1 class="text-md text-base-content flex flex-col">
+							{allowedFormatsString}
+						</h1>
+					</div>
+				</Dropzone>
+				<div on:drop={closeDropzone}>
+					<button class="btn btn-primary w-full" on:click={closeDropzone}>Cancel</button>
 				</div>
 			</div>
 		</dialog>
