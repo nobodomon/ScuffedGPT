@@ -110,6 +110,7 @@
 			scrollToBottom()
 		},
 		onError: (err) => {
+			chatMessages.pop();
 			handleError(err)
 		},
 		initialMessages: chatMessages.slice(-9),
