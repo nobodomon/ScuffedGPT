@@ -443,7 +443,13 @@
 
 			$messages = payload;
 
-			chatMessages = [...chatMessages, { role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: prompt, id: threadID }]
+			chatMessages = [...chatMessages, { 
+				role: 'user',
+				name:auth.currentUser!!.displayName ?? undefined, 
+				content: prompt, 
+				id: threadID, 
+				profilePic: auth.currentUser!!.photoURL ?? undefined
+			}]
 			scrollToBottom();
 			await append({ role: 'user',name:auth.currentUser!!.displayName ?? undefined, content: prompt, id: threadID },{
 				options:{
