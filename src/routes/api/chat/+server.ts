@@ -29,6 +29,8 @@ export const POST = (async ({ request }) => {
 		let {messages, data, model, systemMessage, imageReferences} = await request.json();
 
 
+		
+
 		//console.log(await request.json());
 		
 
@@ -36,9 +38,10 @@ export const POST = (async ({ request }) => {
 			throw new Error('no messages provided')
 		}
 
+		
 		let tokenCount = 0
-
-		console.log("L48", "Transforming input")
+		
+		//Input transform for GPT-4-Vision model
 		if(model === 'gpt-4-vision-preview'){
 			messages.forEach((msg: any, index: number) => {
 				if(index == messages.length - 1){
@@ -79,7 +82,7 @@ export const POST = (async ({ request }) => {
 			})
 		}
 
-		//console.log("L79", "Calculating Total Tokens")
+		//Token limit check
 		messages.forEach((msg: any) => {
 			//console.log("L81", msg)
 			if(model === 'gpt-4-vision-preview'){
@@ -94,8 +97,6 @@ export const POST = (async ({ request }) => {
 
 		const prompt = (systemMessage || 'You are a virtual assistant to replace ChatGPT when it is down. Your name is ScuffedGPT.')
 		tokenCount += getTokens(prompt)
-
-		//console.log(tokenCount)
 
 		let tokenLimit = 0;
 
@@ -114,7 +115,6 @@ export const POST = (async ({ request }) => {
 				break
 		}
 		
-		//console.log("L113", "Trimming excess tokens")
 		while (tokenCount > tokenLimit) {
 			messages.shift()
 			if(model === 'gpt-4-vision-preview'){
@@ -125,7 +125,7 @@ export const POST = (async ({ request }) => {
 			}
 		}
 
-
+		//Prepend system message
 		const payloadMessage  = [
 			{ role: 'system', content: imageReferences.length > 0 ? [
 				{type: 'text', text: prompt},
@@ -133,8 +133,7 @@ export const POST = (async ({ request }) => {
 			...messages
 		]
 
-		//console.log("L121",payloadMessage)
-
+		//Delete unnecessary fields
 		for(const message of payloadMessage) {
 			delete message.name
 			delete message.profilePic
@@ -143,6 +142,27 @@ export const POST = (async ({ request }) => {
 			delete message.imageReference
 		}
 
+		//Moderations
+		let lastMessage = "";
+
+		if(model === 'gpt-4-vision-preview'){
+			lastMessage = payloadMessage[payloadMessage.length - 1].content.find((content: any) => content.type === 'text').text
+		}else{
+			lastMessage = payloadMessage[payloadMessage.length - 1].content
+		}
+
+
+		const moderation = await openai.moderations.create({input: lastMessage, model: 'text-moderation-stable'});
+
+		const moderationResults = moderation['results'][0];
+
+		if(moderationResults.flagged){
+			
+			throw new Error(`Your message was flagged as inappropriate.`);
+
+		}
+
+		
 		const chatResponse = await openai.chat.completions.create({
 			model: model,
 			messages: payloadMessage,
@@ -157,7 +177,7 @@ export const POST = (async ({ request }) => {
 	catch (err: OpenAIError | any) {
 		console.log(JSON.stringify(err))
 		console.error(err.error)
-		const error = err?.message ?? err?.error?.message?? 'There was an error processing your request'
+		const error = err?.message ?? err?.error?.message?? err?? 'There was an error processing your request'
 		return json({ error: error }, { status: 500 })
 	} finally {
 		//console.log('finally')
