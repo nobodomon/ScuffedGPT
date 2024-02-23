@@ -5,6 +5,8 @@
 	import moment from "moment"
 	import { toSeconds } from "../../utils"
     import {Bar} from "svelte-chartjs";
+    import UsageMetrics from "$lib/UsageMetrics";
+
     import {
         Chart,
         Title,
@@ -35,46 +37,6 @@
     let prevMonthStats: any = {}
 
 	const firestore = getFirestore()
-
-    class UsageMetrics {
-        date: string | undefined = ""
-        gpt4PromptTokensUsed: number = 0;
-        gpt4AnswerTokensUsed: number = 0;
-        gpt4VisionTokensUsed: number = 0;
-        gpt3PromptTokensUsed: number = 0;
-        gpt3AnswerTokensUsed: number = 0;
-        transcriptionTime: number = 0;
-        "256x256": number = 0
-        "512x512": number = 0
-        "1024x1024": number = 0
-        "1024x1024-dalle-3": number = 0
-        "1024x1792-dalle-3": number = 0
-        "1792x1024-dalle-3": number = 0
-
-        "1024x1024-dalle-3-hd": number = 0
-        "1024x1792-dalle-3-hd": number = 0
-        "1792x1024-dalle-3-hd": number = 0
-
-
-        constructor(doc: any) {
-            this.date = doc?.date ?? ""
-            this.gpt4PromptTokensUsed = doc?.gpt4PromptTokensUsed ?? 0
-            this.gpt4AnswerTokensUsed = doc?.gpt4AnswerTokensUsed ?? 0
-            this.gpt4VisionTokensUsed = doc?.gpt4VisionTokensUsed ?? 0
-            this.gpt3PromptTokensUsed = doc?.gpt3PromptTokensUsed ?? 0
-            this.gpt3AnswerTokensUsed = doc?.gpt3AnswerTokensUsed ?? 0
-            this.transcriptionTime = doc?.transcriptionTime ?? 0
-            this["256x256"] = doc["256x256"] ?? 0
-            this["512x512"] = doc["512x512"] ?? 0
-            this["1024x1024"] = doc["1024x1024"] ?? 0
-            this["1024x1024-dalle-3"] = doc["1024x1024-dalle-3"] ?? 0
-            this["1024x1792-dalle-3"] = doc["1024x1792-dalle-3"] ?? 0
-            this["1792x1024-dalle-3"] = doc["1792x1024-dalle-3"] ?? 0
-            this["1024x1024-dalle-3-hd"] = doc["1024x1024-dalle-3-hd"] ?? 0
-            this["1024x1792-dalle-3-hd"] = doc["1024x1792-dalle-3-hd"] ?? 0
-            this["1792x1024-dalle-3-hd"] = doc["1792x1024-dalle-3-hd"] ?? 0
-        }
-    }
 
 
     onMount(async () => {
@@ -149,48 +111,6 @@
             dallE3HDUsage: dallE3HDCost
         }
     }
-        
-    const calculateTotalCost = (item:UsageMetrics) =>{
-        const durationCost = (item.transcriptionTime/60 * 0.006).toFixed(4);
-        const gpt3PromptCost = (item.gpt3PromptTokensUsed/1000 * 0.0005).toFixed(4);
-        const gpt3AnswerCost = (item.gpt3AnswerTokensUsed/1000 * 0.0015).toFixed(4);
-
-        const gpt4PromptCost = (item.gpt4PromptTokensUsed/1000 * 0.01).toFixed(4);
-        const gpt4AnswerCost = (item.gpt4AnswerTokensUsed/1000 * 0.03).toFixed(4);
-        const gpt4VisionTokensCost = (item.gpt4VisionTokensUsed/1000 * 0.01).toFixed(4);
-
-        const s_cost = (item["256x256"] * 0.016).toFixed(4);
-        const m_cost = (item["512x512"] * 0.018).toFixed(4);
-        const l_cost = (item["1024x1024"] * 0.02).toFixed(4);
-
-        const dalle3_standard_square_cost = (item["1024x1024-dalle-3"] * 0.04).toFixed(4);
-        const dalle3_standard_landscape_cost = (item["1024x1792-dalle-3"] * 0.08).toFixed(4);
-        const dalle3_standard_portrait_cost = (item["1792x1024-dalle-3"] * 0.08).toFixed(4);
-
-        const dalle3_hd_square_cost = (item["1024x1024-dalle-3-hd"] * 0.08).toFixed(4);
-        const dalle3_hd_landscape_cost = (item["1024x1792-dalle-3-hd"] * 0.12).toFixed(4);
-        const dalle3_hd_portrait_cost = (item["1792x1024-dalle-3-hd"] * 0.12).toFixed(4);
-
-        let total = (
-            parseFloat(durationCost) + 
-            parseFloat(gpt3PromptCost) + 
-            parseFloat(gpt3AnswerCost) + 
-            parseFloat(gpt4PromptCost) + 
-            parseFloat(gpt4AnswerCost) + 
-            parseFloat(s_cost) + 
-            parseFloat(m_cost) + 
-            parseFloat(l_cost) + 
-            parseFloat(dalle3_standard_square_cost) +
-            parseFloat(dalle3_standard_landscape_cost) +
-            parseFloat(dalle3_standard_portrait_cost) +
-            parseFloat(dalle3_hd_square_cost) +
-            parseFloat(dalle3_hd_landscape_cost) +
-            parseFloat(dalle3_hd_portrait_cost)
-        );
-
-        return total
-    }
-    
 
 </script>
 
@@ -206,6 +126,24 @@
     <div class="grid md:grid-cols-[minmax(0,1fr),minmax(0,1fr)] grid-cols-1 w-full items-stretch">
         <!-- Stats Column-->
         <div class="flex flex-col gap-4 p-4 items-stretch">
+            <h1 class="text-xl font-bold">Total Cost</h1>
+            <div class="stats shadow">
+                <div class="stat">
+                    <div class="stat-figure text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </div>
+                    <div class="stat-title">Total Cost</div>
+                    <div class="stat-value
+                    ">{
+                        `$${viewingStats.totalCost} USD`
+                    }</div>
+                    <div class="stat-desc">{
+                        `${calculatePercentage(viewingStats.totalCost, prevMonthStats.totalCost)} of last month`
+                    }</div>
+                </div>
+            </div>
             <h1 class="text-xl font-bold">GPT 4 Usage</h1>
             <!-- GPT 4 Usage -->
             <div class="stats shadow">
@@ -237,8 +175,10 @@
                 </div>
                 
                 <div class="stat">
-                  <div class="stat-figure text-secondary">
-                        
+                    <div class="stat-figure text-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
                     </div>
                     <div class="stat-value">Est Cost</div>
                     <div class="stat-title">{
@@ -266,8 +206,10 @@
                 </div>
                 
                 <div class="stat">
-                  <div class="stat-figure text-secondary">
-                        
+                    <div class="stat-figure text-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
                     </div>
                     <div class="stat-value">Est Cost</div>
                     <div class="stat-title">{
@@ -310,7 +252,9 @@
                 
                 <div class="stat">
                   <div class="stat-figure text-secondary">
-                        
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
                     </div>
                     <div class="stat-value">Est Cost</div>
                     <div class="stat-title">{
@@ -498,8 +442,10 @@
                     </div>
                 </div>
                 <div class="stat">
-                  <div class="stat-figure text-accent">
-                        
+                    <div class="stat-figure text-accent">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
                     </div>
                     <div class="stat-value">Est Cost</div>
                     <div class="stat-title">{
@@ -525,7 +471,7 @@
                                     datasets: [
                                         {
                                             label: "Total Costs ($USD)",
-                                            data: usageMetrics.map((item) => calculateTotalCost(item)),
+                                            data: usageMetrics.map((item) => item.calculateTotalCost()),
                                             backgroundColor: date.map((item,index)=>{
                                                 if(index == 0){
                                                     return 'oklch(0.6569 0.196 275.75)'

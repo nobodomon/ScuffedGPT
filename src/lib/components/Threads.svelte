@@ -20,7 +20,6 @@
         return window.location.href.split('/').pop() === threadId;
     }
 
-
     onMount(async () => {
         const auth = getAuth();
         auth.onAuthStateChanged(async (user) => {

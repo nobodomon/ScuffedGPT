@@ -14,31 +14,17 @@
 	import { toSeconds } from '../utils'
 	import moment from 'moment'
 
+	import UsageMetrics from '$lib/UsageMetrics'
+
 	let loggedIn: boolean = false
 	let uid = ''
 
-	let usedTokens = 0;
-	let gpt4PromptTokensUsed = 0;
-	let gpt4AnswerTokensUsed = 0;
-	let gpt4ImageTokensUsed = 0;
-	let totalDuration = 0;
-	let s_count = 0;
-	let m_count = 0;
-	let l_count = 0;
-
-	let dalle3_standard_square_count = 0;
-	let dalle3_standard_landscape_count = 0;
-	let dalle3_standard_portrait_count = 0;
-
-	let dalle3_hd_square_count = 0;
-	let dalle3_hd_landscape_count = 0;
-	let dalle3_hd_portrait_count = 0;
-
+	let usageMetric : UsageMetrics;
 	let totalCost = "";
 
 	const firestore = getFirestore()
 
-	auth.onAuthStateChanged( async (user) => {
+	auth.onAuthStateChanged( async (user :any) => {
 		if (user) {
 			// User is signed in, see docs for a list of available properties
 			// https://firebase.google.com/docs/reference/js/firebase.User
@@ -48,26 +34,11 @@
 
 			const userTokens = doc(firestore, "Users", uid, "Usage", moment().format("YYYY-MM"));
 
-			onSnapshot(userTokens, (doc) => {
+			onSnapshot(userTokens, (doc : any) => {
 				if(doc.exists()){
-					usedTokens = doc.data().tokensUsed? doc.data().tokensUsed : 0
-					gpt4PromptTokensUsed = doc.data().gpt4PromptTokensUsed? doc.data().gpt4PromptTokensUsed : 0
-					gpt4AnswerTokensUsed = doc.data().gpt4AnswerTokensUsed? doc.data().gpt4AnswerTokensUsed : 0
-					gpt4ImageTokensUsed = doc.data().gpt4VisionTokensUsed? doc.data().gpt4VisionTokensUsed : 0
-					totalDuration = doc.data().transcriptionTime? doc.data().transcriptionTime : 0
-					s_count = doc.data()["256x256"]? doc.data()["256x256"] : 0
-					m_count = doc.data()["512x512"]? doc.data()["512x512"] : 0
-					l_count = doc.data()["1024x1024"]? doc.data()["1024x1024"] : 0
+					usageMetric = new UsageMetrics(doc.data());
 
-					dalle3_standard_square_count = doc.data()["1024x1024-dalle-3"]? doc.data()["1024x1024-dalle-3"] : 0
-					dalle3_standard_landscape_count = doc.data()["1792x1024-dalle-3"]? doc.data()["1792x1024-dalle-3"] : 0
-					dalle3_standard_portrait_count = doc.data()["1024x1792-dalle-3"]? doc.data()["1024x1792-dalle-3"] : 0
-
-					dalle3_hd_square_count = doc.data()["1024x1024-dalle-3-hd"]? doc.data()["1024x1024-dalle-3-hd"] : 0
-					dalle3_hd_landscape_count = doc.data()["1792x1024-dalle-3-hd"]? doc.data()["1792x1024-dalle-3-hd"] : 0
-					dalle3_hd_portrait_count = doc.data()["1024x1792-dalle-3-hd"]? doc.data()["1024x1792-dalle-3-hd"] : 0
-				
-					totalCost = calculateTotalCost();
+					totalCost = usageMetric.calculateTotalCost().toFixed(4);
 				}
 			});
 			
@@ -93,39 +64,6 @@
 	onMount(()=>{
 		themeChange(false);
 	})
-
-	function calculateTotalCost(){
-		const durationCost = (totalDuration/60 * 0.006).toFixed(4);
-		const tokenCost = (usedTokens/1000 * 0.0015).toFixed(4);
-		const gpt4TokensCost = ((gpt4PromptTokensUsed/1000 * 0.01) + (gpt4AnswerTokensUsed/1000 * 0.03)).toFixed(4) + (gpt4ImageTokensUsed/1000 * 0.01).toFixed(4);
-		const s_cost = (s_count * 0.016).toFixed(4);
-		const m_cost = (m_count * 0.018).toFixed(4);
-		const l_cost = (l_count * 0.02).toFixed(4);
-
-		const dalle3_standard_square_cost = (dalle3_standard_square_count * 0.04).toFixed(4);
-		const dalle3_standard_landscape_cost = (dalle3_standard_landscape_count * 0.08).toFixed(4);
-		const dalle3_standard_portrait_cost = (dalle3_standard_portrait_count * 0.08).toFixed(4);
-		
-		const dalle3_hd_square_cost = (dalle3_hd_square_count * 0.08).toFixed(4);
-		const dalle3_hd_landscape_cost = (dalle3_hd_landscape_count * 0.12).toFixed(4);
-		const dalle3_hd_portrait_cost = (dalle3_hd_portrait_count * 0.12).toFixed(4);
-		
-		let total = (
-			parseFloat(durationCost) + 
-			parseFloat(tokenCost) + 
-			parseFloat(gpt4TokensCost) + 
-			parseFloat(s_cost) + 
-			parseFloat(m_cost) + 
-			parseFloat(l_cost) + 
-			parseFloat(dalle3_standard_square_cost) +
-			parseFloat(dalle3_standard_landscape_cost) +
-			parseFloat(dalle3_standard_portrait_cost) +
-			parseFloat(dalle3_hd_square_cost) +
-			parseFloat(dalle3_hd_landscape_cost) +
-			parseFloat(dalle3_hd_portrait_cost)
-		).toFixed(4);
-		return total;
-	}
 </script>
 
 <svelte:head>
@@ -201,51 +139,6 @@
 					</div>
 					<div class="collapse-content"> 
 						<div class="grid grid-cols-2 grid-auto-fr gap-4">
-							<h1 class="text-md text-secondary font-bold">Time</h1>
-							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
-							<h1 class="text-sm ">{toSeconds(totalDuration,"mm[m] ss[s] SS[ms]")}</h1>
-							<h1 class="text-sm ">{(totalDuration/60 * 0.006).toFixed(4)} USD</h1>
-							<h1 class="text-md text-secondary font-bold">GPT3 tokens</h1>
-							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
-							<h1 class="text-sm ">{usedTokens}</h1>
-							<h1 class="text-sm ">{(usedTokens/1000 * 0.0015).toFixed(4)} USD</h1>
-							<h1 class="text-md text-secondary font-bold">GPT4 Prompt tokens</h1>
-							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
-							<h1 class="text-sm ">{gpt4PromptTokensUsed}</h1>
-							<h1 class="text-sm ">{(gpt4PromptTokensUsed/1000 * 0.01).toFixed(4)} USD</h1>
-							<h1 class="text-md text-secondary font-bold">GPT4 Image tokens</h1>
-							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
-							<h1 class="text-sm ">{gpt4ImageTokensUsed}</h1>
-							<h1 class="text-sm ">{(gpt4ImageTokensUsed/1000 * 0.01).toFixed(4)} USD</h1>
-							<h1 class="text-md text-secondary font-bold">GPT4 Answer tokens</h1>
-							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
-							<h1 class="text-sm ">{gpt4AnswerTokensUsed}</h1>
-							<h1 class="text-sm ">{(gpt4AnswerTokensUsed/1000 * 0.03).toFixed(4)} USD</h1>
-							<h1 class="text-md text-secondary font-bold">Images Generated Dall-E 2</h1>
-							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
-							<h1 class="text-sm ">{s_count} x 256x256</h1>
-							<h1 class="text-sm ">{(s_count * 0.016).toFixed(4)} USD</h1>
-							<h1 class="text-sm ">{m_count} x 512x512</h1>
-							<h1 class="text-sm ">{(m_count * 0.018).toFixed(4)} USD</h1>
-							<h1 class="text-sm ">{l_count} x 1024x1024</h1>
-							<h1 class="text-sm ">{(l_count * 0.02).toFixed(4)} USD</h1>
-							<h1 class="text-md text-secondary font-bold">Images Generated Dall-E 3</h1>
-							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
-							<h1 class="text-sm ">{dalle3_standard_square_count} x 1024x1024</h1>
-							<h1 class="text-sm ">{(dalle3_standard_square_count * 0.04).toFixed(4)} USD</h1>
-							<h1 class="text-sm ">{dalle3_standard_landscape_count} x 1792x1024</h1>
-							<h1 class="text-sm ">{(dalle3_standard_landscape_count * 0.08).toFixed(4)} USD</h1>
-							<h1 class="text-sm ">{dalle3_standard_portrait_count} x 1024x1792</h1>
-							<h1 class="text-sm ">{(dalle3_standard_portrait_count * 0.08).toFixed(4)} USD</h1>
-							<h1 class="text-md text-secondary font-bold">Images Generated Dall-E 3 HD</h1>
-							<h1 class="text-md text-accent font-bold">Estimated cost</h1>
-							<h1 class="text-sm ">{dalle3_hd_square_count} x 1024x1024</h1>
-							<h1 class="text-sm ">{(dalle3_hd_square_count * 0.08).toFixed(4)} USD</h1>
-							<h1 class="text-sm ">{dalle3_hd_landscape_count} x 1792x1024</h1>
-							<h1 class="text-sm ">{(dalle3_hd_landscape_count * 0.12).toFixed(4)} USD</h1>
-							<h1 class="text-sm ">{dalle3_hd_portrait_count} x 1024x1792</h1>
-							<h1 class="text-sm ">{(dalle3_hd_portrait_count * 0.12).toFixed(4)} USD</h1>
-
 							<a class="btn btn-primary w-full col-span-2" href={'/usage'}>View Total Usage</a>
 						</div>
 					</div>

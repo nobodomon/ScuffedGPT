@@ -42,13 +42,62 @@ export function getImageTokens(imageReference: any[]): number {
 
 }
 
-export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[]){
-	let tokens = 0
-	chatMessages.forEach((message) => {
-		tokens += getTokens(message.content)
-	})
+export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[], model: string){
+	let promptTokens = 0
+	let answerTokens = 0
 
-	return tokens
+	switch(model){
+		case 'gpt-3.5-turbo-preview':
+			chatMessages.forEach((message) => {
+				if(message.role === 'assistant'){
+					answerTokens += getTokens(message.content)
+				}else{
+					promptTokens += getTokens(message.content)
+				}
+			})
+			break
+		case "gpt-3.5-turbo-0125":
+			chatMessages.forEach((message) => {
+				if(message.role === 'assistant'){
+					answerTokens += getTokens(message.content)
+				}else{
+					promptTokens += getTokens(message.content)
+				}
+			})
+			break
+		case 'gpt-4-turbo-preview':
+			chatMessages.forEach((message) => {
+				if(message.role === 'assistant'){
+					answerTokens += getTokens(message.content)
+				}else{
+					promptTokens += getTokens(message.content)
+				}
+			})
+			break
+		case 'gpt-4-vision-preview':
+			chatMessages.forEach((message) => {
+				
+				if(message.role === 'assistant'){
+					answerTokens += getTokens(message.content)
+				}else{
+					promptTokens += getTokens(message.content)
+					
+					if(message.imageReference.length > 0) {
+						promptTokens += getImageTokens(message.imageReference);
+					}
+				}
+			})
+			break
+	}
+
+	return {
+		promptTokens: promptTokens,
+		promptCosts: (promptTokens / 1000 * 0.0005),
+		answerTokens: answerTokens,
+		answerCosts: (answerTokens / 1000 * 0.0015),
+		totalTokens: promptTokens + answerTokens,
+		cost: (promptTokens / 1000 * 0.0005) + (answerTokens / 1000 * 0.0015)
+	}
 }
 
 export function getTokensFromAllThreads(threads: any[]){

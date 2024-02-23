@@ -209,7 +209,8 @@
 			bookmarks = bookmarks.filter((item) => item.index != e.detail.index)
 			await updateDb()
 		}else{
-			showBookmarkModal = true
+			showBookmarkModal = true;
+			(document.getElementById('bookmarkModal') as HTMLDialogElement)?.showModal();
 			index = e.detail.index
 		}
 	}
@@ -222,11 +223,13 @@
 		})
 		bookmarks = bookmarks
 
-		await updateDb()
+		await updateDb();
+		(document.getElementById('bookmarkModal') as HTMLDialogElement)?.close();
 		showBookmarkModal = false
 	}
 
 	function closeBookmarkModal(){
+		(document.getElementById('bookmarkModal') as HTMLDialogElement)?.close();
 		showBookmarkModal = false
 		index = -1
 	}
@@ -304,18 +307,13 @@
 			</div>
 		</div>
 		
-		<label class="swap">
-			<input type="checkbox" />
-			<div class="btn btn-accent break-keep swap-off">
+		
+		<div class="btn btn-accent break-keep swap-off">
 				
-				${getImagesCost(results, model)}
-			</div>
-			<div class="btn btn-accent break-keep swap-on">
-				<!-- ${(getTotalTokens(chatMessages)/1000 * 0.0015).toFixed(4)} -->
-			</div>
-		</label>
+			${getImagesCost(results, model).toFixed(4)}
+		</div>
 		{#if bookmarks.length > 0}
-		<div class="dropdown dropdown-bottom dropdown-end">
+		<div class="dropdown dropdown-bottom dropdown-end z-[1]">
 			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 			<!-- svelte-ignore a11y-label-has-associated-control -->
 			<label tabindex="0" class="btn btn-square">
@@ -441,8 +439,11 @@
 			<button type="submit" class="btn btn-primary">Send</button>
 		{/if}
 	</form>
+	<dialog class="modal modal-bottom sm:modal-middle" id='bookmarkModal'>
+			
+		<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
 
-	<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
+	</dialog>
 	<div class="toast toast-top toast-center">
 		{#each errors as error, index}
 			<div class="alert alert-error">

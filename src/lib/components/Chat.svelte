@@ -57,6 +57,8 @@
 
 	$: imageReferences = imageReferences
 
+	$: tokens = getTotalTokens(chatMessages, model);
+
 	let filedetected: boolean = false
 
 	let image: File | undefined = undefined;
@@ -88,7 +90,6 @@
 		onResponse: async (response) => {
 			//answer = lastmessage.content
 			$input = ""
-			console.log($messages);
 			scrollToBottom();
 		},
 		onFinish: async () => {
@@ -98,8 +99,6 @@
 			chatMessages = [...chatMessages, { role: 'assistant',name:'ScuffedGPT', content: lastmessage.content, id: threadID, profilePic: auth.currentUser!!.photoURL ?? undefined }]
 			const ansToken = await getTokens(lastmessage.content)
 			const promptToken = await getTokens(messageBeforeLast.content)
-			console.log(ansToken);
-			console.log(promptToken);
 			answer = ''
 			imageReferences = []
 			await updateDb();
@@ -144,7 +143,6 @@
 			users.push(auth.currentUser!!.uid)
 		}
 
-		console.log(imageList);
 		const key = users.toString().split(',').sort().join(',');
         if(threadID != ""){
             await setDoc(doc(firestore, "Threads", threadID), {
@@ -215,7 +213,7 @@
 		//decrypt the messages
 		var bytes  = CryptoJS.AES.decrypt(messages, key);
 		var originalText = bytes.toString(CryptoJS.enc.Utf8);
-		console.log(originalText);
+
 		return JSON.parse(originalText);
 	}
 
@@ -228,7 +226,6 @@
 				if(doc.data()!!.users.indexOf(auth.currentUser!!.uid) == -1){
 					chatMessages = [];
 				}else{
-					console.log("Thread is locked");
 					const key = doc.data()!!.users.toString().split(',').sort().join(',');
 					chatMessages = decrypt(doc.data()!!.messages, key);
 					encrytedMessages = doc.data()!!.messages;
@@ -260,7 +257,6 @@
 			if (items) {
 				let file: File | null = null;
 				for (let i = 0; i < 1; i++) {
-					console.log(items)
 					if(items[i].type.indexOf('image') !== -1) {
 						// Image is pasted, handle it here
 						file = items[i].getAsFile();
@@ -272,10 +268,6 @@
 
 					if(items[i].type == 'application/pdf'){
 						file = items[i].getAsFile();
-						// await read(file).then((reader) => {
-						// 	console.log(reader.result);
-						// 	showDialog = true;
-						// })
 						newImage = file!!;
 						showDialog = true;
 
@@ -307,7 +299,6 @@
 			}
 
 			if(showDialog){
-				console.log(image);
 				showTextRecognition = true;
 				image = newImage;
 				(document.getElementById("textRecognitionModal") as HTMLDialogElement).showModal();
@@ -355,7 +346,6 @@
 
 		imageReferences = newReference;
 
-		console.log(imageReferences);
 	}
 
 	async function deleteFileReference(file: any){
@@ -545,6 +535,20 @@
 		(document.getElementById('dropzone') as HTMLDialogElement).close()
 	}
 
+	
+    const getShortName = (model: string) => {
+        switch(model){
+            case "gpt-3.5-turbo-0125":
+                return "GPT-3.5";
+            case "gpt-3.5-turbo-1106":
+                return "GPT-3.5";
+            case "gpt-4-turbo-preview":
+                return "GPT-4";
+            case "gpt-4-vision-preview":
+                return "GPT-4 Vision";
+        }
+    }
+
 </script>
 {#if fetching}
 
@@ -563,70 +567,112 @@
 		}
 	}}>
 		<div class="navbar bg-base-200 shadow-lg rounded-md gap-4"> 
-			<div class="form-control grow shadow-inner">
-				<div class="join w-full">
-				<input 
-					type="text" 
-					placeholder="Unnamed thread" 
-					class="input w-full text-base-content join-item"
-					bind:value={threadname}
-					/>
-				<button class={`btn btn-secondary ${checkAccess() ? "" : "disabled"}`} on:click={async ()=>{
-					if(checkAccess()){
-						await updateDb();
-					}else{
-						handleError("You do not have access to this thread")
-					}
-				}}>
-					<div class="w-5 join-item">
-					<MdSave />
-					</div>	
-				</button>
-				</div>
-			</div>
-			
-			<label class="swap">
-				<input type="checkbox" />
-				<div class="btn btn-accent break-keep swap-off">
-					{getTotalTokens(chatMessages)} tokens
-				</div>
-				<div class="btn btn-accent break-keep swap-on">
-					${(getTotalTokens(chatMessages)/1000 * 0.0015).toFixed(4)}
-				</div>
-			</label>
-			{#if bookmarks.length > 0}
-			<div class="dropdown dropdown-bottom dropdown-end">
-				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<!-- svelte-ignore a11y-label-has-associated-control -->
-				<label tabindex="0" class="btn btn-square">
-					<div class="w-5">
-							<MdBookmark />
+			<div class="flex flex-1 gap-4">
+				<div class="form-control grow shadow-inner">
+					<div class="join w-full">
+					<input 
+						type="text" 
+						placeholder="Unnamed thread" 
+						class="input w-full text-base-content join-item"
+						bind:value={threadname}
+						/>
+					<button class={`btn btn-secondary ${checkAccess() ? "" : "disabled"}`} on:click={async ()=>{
+						if(checkAccess()){
+							await updateDb();
+						}else{
+							handleError("You do not have access to this thread")
+						}
+					}}>
+						<div class="w-5 join-item">
+						<MdSave />
+						</div>	
+					</button>
 					</div>
-				</label>
-				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<ul tabindex="0" class="dropdown-content menu p-2 mt-2 shadow bg-base-100 rounded-box w-52">
-					{#each sortBookmarks(bookmarks) as bookmark}
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<!-- svelte-ignore a11y-missing-attribute -->
-						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-						<li class="w-full text-base-content" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
-					{/each}
-				</ul>
-			</div>
-			{/if}
-			<button class={`btn btn-square ${locked ? "btn-error": 'btn-primary'}`} on:click={showLockThreadConfirmation}>
-				{#if locked } 
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-					</svg>
-
-				{:else}
-
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-					</svg>
+				</div>
+				
+				<div class="dropdown dropdown-hover dropdown-end flex">
+					<label class="swap" tabIndex={0}>
+						<input type="checkbox" />
+						<div class="btn btn-accent break-keep swap-off">
+							{tokens.totalTokens} tokens
+						</div>
+						<div class="btn btn-accent break-keep swap-on">
+							${tokens.cost.toFixed(4)}
+						</div>
+					</label>
+					<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+					<ul tabindex={0} class="dropdown-content z-[1] menu mt-12 p-2 shadow bg-base-100 rounded-box w-52">
+						<li>
+							<div class="flex justify-between">
+								<span>Model:</span>
+								<span>{getShortName(model)}</span>
+							</div>
+						</li>
+						<li>
+							<div class="flex justify-between">
+								<span>Cost:</span>
+								<span>${tokens.cost.toFixed(4)}</span>
+							</div>
+						</li>
+						<li>
+							<div class="flex justify-between">
+								<span>Prompt Tokens:</span>
+								<span>{tokens.promptTokens}</span>
+							</div>
+						</li>
+						<li>
+							<div class="flex justify-between">
+								<span>Prompt Tokens Cost:</span>
+								<span>${tokens.promptCosts.toFixed(4)}</span>
+							</div>
+						<li>
+							<div class="flex justify-between">
+								<span>Answer Tokens:</span>
+								<span>{tokens.answerTokens}</span>
+							</div>
+						</li>
+						<li>
+							<div class="flex justify-between">
+								<span>Answer Tokens Cost:</span>
+								<span>${tokens.answerCosts.toFixed(4)}</span>
+							</div>
+						</li>
+					</ul>
+				</div>
+				{#if bookmarks.length > 0}
+				<div class="dropdown dropdown-bottom dropdown-end">
+					<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+					<!-- svelte-ignore a11y-label-has-associated-control -->
+					<label tabindex="0" class="btn btn-square">
+						<div class="w-5">
+								<MdBookmark />
+						</div>
+					</label>
+					<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+					<ul tabindex="0" class="dropdown-content z-[1] menu p-2 mt-2 shadow bg-base-100 rounded-box w-52">
+						{#each sortBookmarks(bookmarks) as bookmark}
+							<!-- svelte-ignore a11y-click-events-have-key-events -->
+							<!-- svelte-ignore a11y-missing-attribute -->
+							<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+							<li class="w-full text-base-content" on:click={()=>{scrollToBookmark(bookmark.index)}}><a>{bookmark.name}</a></li>
+						{/each}
+					</ul>
+				</div>
 				{/if}
-			</button>
+				<button class={`btn btn-square ${locked ? "btn-error": 'btn-primary'}`} on:click={showLockThreadConfirmation}>
+					{#if locked } 
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+						</svg>
+	
+					{:else}
+	
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+						</svg>
+					{/if}
+				</button>
+			</div>
 		</div>
 		<div class={" bg-base-300 rounded-md overflow-y-auto flex flex-col grow " + (answer != "" || $isLoading ? "animate-pulse" : "")}>
 			<div class="flex flex-col relative">
@@ -775,8 +821,11 @@
 		
 		<TextRecognition bind:image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt} on:useAsImage={appendUrl} allowImageInput={model == "gpt-4-vision-preview"}/>
 		
-		<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
+		<dialog class="modal modal-bottom sm:modal-middle" id='bookmarkModal'>
+			
+			<BookmarkModal showModal={showBookmarkModal} index={index} on:saveBookmark={saveBookmark} on:closeModal={closeBookmarkModal}/>
 
+		</dialog>
 		<dialog id="lockThreadConfirmation" class="modal">
 			<div class="modal-box">
 				<div class="flex flex-col items-start gap-4">
