@@ -59,9 +59,10 @@
                         ]
                     });
 
+                    console.log(usageMetrics);
                     
                     usageMetrics.sort((a: UsageMetrics, b: UsageMetrics) => {
-                        return a.date?.localeCompare(b.date ?? "") ?? 0;
+                        return b.date?.localeCompare(a.date ?? "") ?? 0;
                     });
                     date = usageMetrics.map((item: UsageMetrics) => {
                         return item.date
@@ -82,8 +83,12 @@
         });
     })
 
-    const onChangeViewingDate = () => {
-        viewingStats = usageMetrics.filter((item: UsageMetrics) => item.date == viewingDate);
+    const onChangeViewingDate = (e: any) => {
+        viewingStats = usageMetrics.find((item: UsageMetrics) => {
+            return item.date == viewingDate
+        });
+
+        console.log(viewingStats);
 
         if(usageMetrics.indexOf(viewingStats) == usageMetrics.length - 1){
             prevMonthStats = new UsageMetrics({})
@@ -97,7 +102,7 @@
         if(prev == undefined || isNaN(prev) || prev == 0){
             return "0%"
         }
-        return `${((current - prev) / prev) * 100}%`
+        return `${(100 - Math.abs(((current - prev) / prev) * 100)).toFixed(2)}%`
     }
 
     const getImageCost = (item: UsageMetrics) =>{
@@ -137,7 +142,7 @@
                     <div class="stat-title">Total Cost</div>
                     <div class="stat-value
                     ">{
-                        `$${viewingStats.totalCost} USD`
+                        `$${viewingStats.totalCost?.toFixed(4)} USD`
                     }</div>
                     <div class="stat-desc">{
                         `${calculatePercentage(viewingStats.totalCost, prevMonthStats.totalCost)} of last month`
