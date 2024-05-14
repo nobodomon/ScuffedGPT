@@ -98,6 +98,7 @@ export function getBytesFromUnit(unit, value) {
 
 
 export function toSeconds(time, format = 'mm:ss:SS'){
+    console.log(time);
     return moment.utc(time*1000).format(format)
 }
 

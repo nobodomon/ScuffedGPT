@@ -22,6 +22,9 @@ export async function updateTokenUsed(token: any, model: any, params: any){
         case "gpt-4-vision-preview":
             await updateGPT4VisionTokenUsed(token, params);
             break;
+        case "gpt-4o":
+            await updateGPT4oTokenUsed(token, params);
+            break;
         case "dall-e-2":
             await updateImageTokenUsed(token, params);
             break;
@@ -74,7 +77,6 @@ const calculateImageToken = (width: number, height:number) => {
 
 const updateGPT4VisionTokenUsed = async (token: any, params: any) => {
     const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));
-    console.log(params);
     let imageTokensUsed = 0;
     for(const reference of params){
         imageTokensUsed += calculateImageToken(reference.fileDimensions.width, reference.fileDimensions.height);
@@ -88,6 +90,23 @@ const updateGPT4VisionTokenUsed = async (token: any, params: any) => {
     }, {merge: true})
 
 }
+
+const updateGPT4oTokenUsed = async (token: any, params: any) => {
+    const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));
+    let imageTokensUsed = 0;
+    for(const reference of params){
+        imageTokensUsed += calculateImageToken(reference.fileDimensions.width, reference.fileDimensions.height);
+    }
+
+    await setDoc(userRef, {
+        gpt4oPromptTokensUsed: increment(token.prompt),
+        gpt4oAnswerTokensUsed: increment(token.answer),
+        gpt4oVisionTokensUsed: increment(imageTokensUsed)
+        
+    }, {merge: true})
+
+}
+
 
 const updateImageTokenUsed = async (token: any, params: any) => {
     const userRef = doc(firestore, "Users", auth.currentUser!!.uid,"Usage", moment().format('YYYY-MM'));

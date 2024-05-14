@@ -47,6 +47,7 @@ export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[], mod
 	let answerTokens = 0
 
 	switch(model){
+		//Deprecated
 		case 'gpt-3.5-turbo-preview':
 			chatMessages.forEach((message) => {
 				if(message.role === 'assistant'){
@@ -64,7 +65,15 @@ export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[], mod
 					promptTokens += getTokens(message.content)
 				}
 			})
-			break
+			return {
+				promptTokens: promptTokens,
+				promptCosts: (promptTokens / 1000 * 0.0005),
+				answerTokens: answerTokens,
+				answerCosts: (answerTokens / 1000 * 0.0015),
+				totalTokens: promptTokens + answerTokens,
+				cost: (promptTokens / 1000 * 0.0005) + (answerTokens / 1000 * 0.0015)
+			}
+		//Deprecated
 		case 'gpt-4-turbo-preview':
 			chatMessages.forEach((message) => {
 				if(message.role === 'assistant'){
@@ -73,7 +82,15 @@ export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[], mod
 					promptTokens += getTokens(message.content)
 				}
 			})
-			break
+			return {
+				promptTokens: promptTokens,
+				promptCosts: (promptTokens / 1000 * 0.005),
+				answerTokens: answerTokens,
+				answerCosts: (answerTokens / 1000 * 0.015),
+				totalTokens: promptTokens + answerTokens,
+				cost: (promptTokens / 1000 * 0.005) + (answerTokens / 1000 * 0.015)
+			}
+		//Deprecated
 		case 'gpt-4-vision-preview':
 			chatMessages.forEach((message) => {
 				
@@ -87,17 +104,48 @@ export function getTotalTokens(chatMessages: ChatCompletionRequestMessage[], mod
 					}
 				}
 			})
-			break
+			return {
+				promptTokens: promptTokens,
+				promptCosts: (promptTokens / 1000 * 0.005),
+				answerTokens: answerTokens,
+				answerCosts: (answerTokens / 1000 * 0.015),
+				totalTokens: promptTokens + answerTokens,
+				cost: (promptTokens / 1000 * 0.005) + (answerTokens / 1000 * 0.015)
+			}
+		case 'gpt-4o':
+			chatMessages.forEach((message) => {
+				
+				if(message.role === 'assistant'){
+					answerTokens += getTokens(message.content)
+				}else{
+					promptTokens += getTokens(message.content)
+					
+					if(message.imageReference?.length > 0) {
+						promptTokens += getImageTokens(message.imageReference);
+					}
+				}
+			})
+
+			
+			return {
+				promptTokens: promptTokens,
+				promptCosts: (promptTokens / 1000 * 0.005),
+				answerTokens: answerTokens,
+				answerCosts: (answerTokens / 1000 * 0.015),
+				totalTokens: promptTokens + answerTokens,
+				cost: (promptTokens / 1000 * 0.005) + (answerTokens / 1000 * 0.015)
+			}
+		default:
+			return{
+				promptTokens: 0,
+				promptCosts: 0,
+				answerTokens: 0,
+				answerCosts: 0,
+				totalTokens: 0,
+				cost: 0
+			}
 	}
 
-	return {
-		promptTokens: promptTokens,
-		promptCosts: (promptTokens / 1000 * 0.0005),
-		answerTokens: answerTokens,
-		answerCosts: (answerTokens / 1000 * 0.0015),
-		totalTokens: promptTokens + answerTokens,
-		cost: (promptTokens / 1000 * 0.0005) + (answerTokens / 1000 * 0.0015)
-	}
 }
 
 export function getTokensFromAllThreads(threads: any[]){

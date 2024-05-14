@@ -3,6 +3,9 @@ export default class UsageMetrics {
     gpt4PromptTokensUsed: number = 0;
     gpt4AnswerTokensUsed: number = 0;
     gpt4VisionTokensUsed: number = 0;
+    gpt4oPromptTokensUsed: number = 0;
+    gpt4oAnswerTokensUsed: number = 0;
+    gpt4oVisionTokensUsed: number = 0;
     gpt3PromptTokensUsed: number = 0;
     gpt3AnswerTokensUsed: number = 0;
     transcriptionTime: number = 0;
@@ -21,10 +24,14 @@ export default class UsageMetrics {
 
 
     constructor(doc: any) {
+        console.log(doc);
         this.date = doc?.date ?? ""
         this.gpt4PromptTokensUsed = doc?.gpt4PromptTokensUsed ?? 0
         this.gpt4AnswerTokensUsed = doc?.gpt4AnswerTokensUsed ?? 0
         this.gpt4VisionTokensUsed = doc?.gpt4VisionTokensUsed ?? 0
+        this.gpt4oPromptTokensUsed = doc?.gpt4oPromptTokensUsed ?? 0
+        this.gpt4oAnswerTokensUsed = doc?.gpt4oAnswerTokensUsed ?? 0
+        this.gpt4oVisionTokensUsed = doc?.gpt4oVisionTokensUsed ?? 0
         this.gpt3PromptTokensUsed = doc?.gpt3PromptTokensUsed ?? 0
         this.gpt3AnswerTokensUsed = doc?.gpt3AnswerTokensUsed ?? 0
         this.transcriptionTime = doc?.transcriptionTime ?? 0
@@ -51,6 +58,10 @@ export default class UsageMetrics {
         const gpt4AnswerCost = (this.gpt4AnswerTokensUsed/1000 * 0.03).toFixed(4);
         const gpt4VisionTokensCost = (this.gpt4VisionTokensUsed/1000 * 0.01).toFixed(4);
 
+        const gpt4oPromptCost = (this.gpt4oPromptTokensUsed/1000 * 0.005).toFixed(4);
+        const gpt4oAnswerCost = (this.gpt4oAnswerTokensUsed/1000 * 0.015).toFixed(4);
+        const gpt4oVisionTokensCost = (this.gpt4VisionTokensUsed/1000 * 0.001275).toFixed(4);
+
         const s_cost = (this["256x256"] * 0.016).toFixed(4);
         const m_cost = (this["512x512"] * 0.018).toFixed(4);
         const l_cost = (this["1024x1024"] * 0.02).toFixed(4);
@@ -70,6 +81,9 @@ export default class UsageMetrics {
             parseFloat(gpt4PromptCost) + 
             parseFloat(gpt4AnswerCost) + 
             parseFloat(gpt4VisionTokensCost) +
+            parseFloat(gpt4oPromptCost) +
+            parseFloat(gpt4oAnswerCost) +
+            parseFloat(gpt4oVisionTokensCost) +
             parseFloat(s_cost) + 
             parseFloat(m_cost) +
             parseFloat(l_cost) +

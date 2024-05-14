@@ -12,6 +12,7 @@
 	import { getTotalImageCost } from '$lib/tokenizer'
 	import ImageMessage from './ImageMessage.svelte'
 	import { updateTokenUsed } from '$lib/token'
+	import type { DocumentData } from 'firebase/firestore'
 
     export let threadID = ""
 	let threadname = ""
@@ -175,7 +176,7 @@
 
 	export async function getThread(threadId: string){
 		fetching = true;
-		getDoc(doc(firestore, "ImageThreads", threadId)).then((doc) => {
+		getDoc(doc(firestore, "ImageThreads", threadId)).then((doc: any) => {
 			if (doc.exists()) {
 				threadname = doc.data()!!.name
 				results = doc.data()!!.results

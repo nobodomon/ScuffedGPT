@@ -390,7 +390,7 @@
 
 		let prompt = $input;
 
-		if(model == "gpt-4-vision-preview"){
+		if(['gpt-4-vision-preview', 'gpt-4o'].includes(model)){
 
 			let payload = chatMessages.slice(-9);
 
@@ -542,10 +542,12 @@
                 return "GPT-3.5";
             case "gpt-3.5-turbo-1106":
                 return "GPT-3.5";
-            case "gpt-4-turbo-preview":
+            case "gpt-4-o":
                 return "GPT-4";
             case "gpt-4-vision-preview":
                 return "GPT-4 Vision";
+			case "gpt-4o":
+				return "GPT-4";
         }
     }
 
@@ -700,8 +702,7 @@
 					
 					<select bind:value={model} class="select shrink">
 						<option selected value={'gpt-3.5-turbo-0125'}>GPT 3.5 Turbo</option>
-						<option value={'gpt-4-turbo-preview'}>GPT 4 Turbo</option>
-						<option value={'gpt-4-vision-preview'}>GPT 4 Vision</option>
+						<option value={'gpt-4o'}>GPT 4</option>
 					</select>
 				</div>
 				{/if}
@@ -819,7 +820,7 @@
 		</form>
 		
 		
-		<TextRecognition bind:image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt} on:useAsImage={appendUrl} allowImageInput={model == "gpt-4-vision-preview"}/>
+		<TextRecognition bind:image={image} on:closeModal={closeModal} on:useAsPrompt={appendPrompt} on:useAsImage={appendUrl} allowImageInput={['gpt-4-vision-preview', 'gpt-4o'].includes(model)}/>
 		
 		<dialog class="modal modal-bottom sm:modal-middle" id='bookmarkModal'>
 			

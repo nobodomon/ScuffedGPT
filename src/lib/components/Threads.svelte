@@ -114,6 +114,8 @@
                 return "GPT-4";
             case "gpt-4-vision-preview":
                 return "GPT-4 Vision";
+            case "gpt-4o":
+                return "GPT-4";
         }
     }
 

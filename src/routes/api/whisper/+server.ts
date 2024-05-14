@@ -37,6 +37,9 @@ export const POST: RequestHandler = async ({ request }) => {
         //     method: 'POST',
         //     body: formData
         // })
+
+        console.log(fileBlob.type);
+        console.log(originalFileName);
         const fileObj = new File([fileBlob], originalFileName, {type: fileBlob.type})
         
         const transcribeResponse = await openai.audio.transcriptions.create(

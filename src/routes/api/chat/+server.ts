@@ -42,7 +42,7 @@ export const POST = (async ({ request }) => {
 		let tokenCount = 0
 		
 		//Input transform for GPT-4-Vision model
-		if(model === 'gpt-4-vision-preview'){
+		if(['gpt-4-vision-preview', 'gpt-4o'].includes(model)){
 			messages.forEach((msg: any, index: number) => {
 				if(index == messages.length - 1){
 					const newContent = []
@@ -85,7 +85,7 @@ export const POST = (async ({ request }) => {
 		//Token limit check
 		messages.forEach((msg: any) => {
 			//console.log("L81", msg)
-			if(model === 'gpt-4-vision-preview'){
+			if(['gpt-4-vision-preview', 'gpt-4o'].includes(model)){
 				const tokens = getTokens(msg.content.find((content: any) => content.type === 'text').text)
 				tokenCount += tokens
 			}else{
@@ -110,6 +110,9 @@ export const POST = (async ({ request }) => {
 			case 'gpt-4-vision-preview':
 				tokenLimit = 128000
 				break
+			case 'gpt-4o':
+				tokenLimit = 128000
+				break
 			default:
 				tokenLimit = 4096
 				break
@@ -117,7 +120,7 @@ export const POST = (async ({ request }) => {
 		
 		while (tokenCount > tokenLimit) {
 			messages.shift()
-			if(model === 'gpt-4-vision-preview'){
+			if(['gpt-4-vision-preview', 'gpt-4o'].includes(model)){
 				tokenCount -= getTokens(messages[0].content.find((content: any) => content.type === 'text').text)
 			}else{
 				
@@ -145,7 +148,7 @@ export const POST = (async ({ request }) => {
 		//Moderations
 		let lastMessage = "";
 
-		if(model === 'gpt-4-vision-preview'){
+		if(['gpt-4-vision-preview', 'gpt-4o'].includes(model)){
 			lastMessage = payloadMessage[payloadMessage.length - 1].content.find((content: any) => content.type === 'text').text
 		}else{
 			lastMessage = payloadMessage[payloadMessage.length - 1].content
@@ -161,7 +164,6 @@ export const POST = (async ({ request }) => {
 			throw new Error(`Your message was flagged as inappropriate.`);
 
 		}
-
 		
 		const chatResponse = await openai.chat.completions.create({
 			model: model,

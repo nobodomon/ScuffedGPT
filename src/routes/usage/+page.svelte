@@ -149,8 +149,85 @@
                     }</div>
                 </div>
             </div>
-            <h1 class="text-xl font-bold">GPT 4 Usage</h1>
+            
+            <h1 class="text-xl font-bold">GPT 4o Usage</h1>
+            <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-figure text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.652-3.978c.26-.39.687-.634 1.153-.67 1.09-.086 2.17-.208 3.238-.365 1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                      </svg>
+                      
+                  </div>
+                  <div class="stat-title">GPT-4o Prompts</div>
+                  <div class="stat-value text-primary">{viewingStats["gpt4oPromptTokensUsed"]}</div>
+                  <div class="stat-desc">{
+                     `${calculatePercentage(viewingStats["gpt4oPromptTokensUsed"], prevMonthStats["gpt4oPromptTokensUsed"])} of last month`
+                  }</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-figure text-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                        </svg>
+                    </div>
+                    <div class="stat-title">GPT-4o Answers</div>
+                    <div class="stat-value text-secondary">{viewingStats.gpt4oAnswerTokensUsed}</div>
+                    <div class="stat-desc">{
+                        `${calculatePercentage(viewingStats["gpt4oAnswerTokensUsed"], prevMonthStats["gpt4oAnswerTokensUsed"])} of last month`}
+                    </div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-figure text-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </div>
+                    <div class="stat-value">Est Cost</div>
+                    <div class="stat-title">{
+                        `$${((viewingStats["gpt4oPromptTokensUsed"]/1000 * 0.01) + (viewingStats['gpt4oAnswerTokensUsed']/1000 * 0.03)).toFixed(4)} USD`    
+                    }</div>
+                    <div class="stat-desc text-secondary">
+                        {`${calculatePercentage((viewingStats["gpt4oPromptTokensUsed"]/1000 * 0.01) + (viewingStats['gpt4oAnswerTokensUsed']/1000 * 0.03), (prevMonthStats["gpt4oPromptTokensUsed"]/1000 * 0.01) + (prevMonthStats['gpt4oAnswerTokensUsed']/1000 * 0.03))} of last month`}
+                    </div>
+                </div>
+                
+            </div>
+            <div class="stats shadow">
+                <div class="stat">
+                  <div class="stat-figure text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.652-3.978c.26-.39.687-.634 1.153-.67 1.09-.086 2.17-.208 3.238-.365 1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                      </svg>
+                      
+                  </div>
+                  <div class="stat-title">GPT-4o Vision Tokens</div>
+                  <div class="stat-value text-primary">{viewingStats["gpt4oVisionTokensUsed"]}</div>
+                  <div class="stat-desc">{
+                     `${calculatePercentage(viewingStats["gpt4oVisionTokensUsed"], prevMonthStats["gpt4oVisionTokensUsed"])} of last month`
+                  }</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-figure text-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </div>
+                    <div class="stat-value">Est Cost</div>
+                    <div class="stat-title">{
+                        `$${((viewingStats["gpt4VisionTokensUsed"]/1000 * 0.01) + (viewingStats['gpt4VisionTokensUsed']/1000 * 0.03)).toFixed(4)} USD`    
+                    }</div>
+                    <div class="stat-desc text-secondary">
+                        {`${calculatePercentage((viewingStats["gpt4VisionTokensUsed"]/1000 * 0.01), (prevMonthStats["gpt4VisionTokensUsed"]/1000 * 0.01))} of last month`}
+                    </div>
+                </div>
+                
+            </div>
             <!-- GPT 4 Usage -->
+            <h1 class="text-xl font-bold">GPT 4 Usage</h1>
             <div class="stats shadow">
                 <div class="stat">
                   <div class="stat-figure text-primary">
@@ -226,8 +303,8 @@
                 </div>
                 
             </div>
-            <h1 class="text-xl font-bold">GPT 3 Usage</h1>
             <!-- GPT 3 Usage-->
+            <h1 class="text-xl font-bold">GPT 3 Usage</h1>
             <div class="stats shadow">
                 <div class="stat">
                   <div class="stat-figure text-primary">
