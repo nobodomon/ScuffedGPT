@@ -6,4 +6,7 @@
     <h1 class='text-2xl'>
         ScuffedGPT is shutting down
     </h1>
+    <h2 class="text-xl">
+        This site will close down by 1st July 2024
+    </h2>
 </div>
