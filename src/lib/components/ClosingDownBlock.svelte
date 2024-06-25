@@ -11,6 +11,6 @@
     </h2>
     <p class="flex flex-col items-center">
         If you want to deploy it yourself, 
-        <a class='link' href='https://github.com/nobodomon/ScuffedGPT'>https://github.com/nobodomon/ScuffedGPT</a>
+        <a class='link' href='https://github.com/nobodomon/ScuffedGPT'>https://github.com/nobodomon/ScuffedGPT/tree/Latest-stable</a>
     </p>
 </div>
